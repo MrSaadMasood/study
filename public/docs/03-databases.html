@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>P3 — Databases: SQL, MongoDB, Redis</title>
+<style>
+body{font-family:Arial,sans-serif;margin:48px;color:#1a1a1a;line-height:1.7;}
+h1{font-size:22pt;color:#0d1b2a;border-bottom:3px solid #0d1b2a;padding-bottom:8px;}
+h2{font-size:16pt;color:#1b2838;border-bottom:2px solid #f57f17;padding-bottom:4px;margin-top:36px;}
+h3{font-size:13pt;color:#1b2838;margin-top:24px;}
+h4{font-size:11pt;color:#37474f;margin-top:16px;text-decoration:underline;}
+table{border-collapse:collapse;width:100%;margin:16px 0;font-size:10pt;}
+th{background:#0d1b2a;color:#fff;padding:10px 8px;text-align:left;}
+td{border:1px solid #ccc;padding:8px;vertical-align:top;}
+tr:nth-child(even) td{background:#f8f9fa;}
+.must{color:#1b5e20;font-weight:bold;}
+.should{color:#bf360c;font-weight:bold;}
+.bonus{color:#880e4f;font-weight:bold;}
+.box-q{background:#fff8e1;border-left:4px solid #f9a825;padding:10px 14px;margin:10px 0;font-weight:bold;}
+.box-a{background:#e8f5e9;border-left:4px solid #43a047;padding:10px 14px;margin:4px 0 20px 0;}
+.box-depth{background:#e3f2fd;border-left:4px solid #1976d2;padding:10px 14px;margin:10px 0;}
+.box-tip{background:#e0f2f1;border-left:4px solid #00897b;padding:10px 14px;margin:10px 0;}
+.box-warn{background:#fce4ec;border-left:4px solid #e91e63;padding:10px 14px;margin:10px 0;}
+code{background:#f5f5f5;padding:2px 5px;border-radius:3px;font-family:'Courier New',monospace;font-size:9.5pt;}
+pre{background:#1a1a2e;color:#e0e0e0;padding:14px;border-radius:5px;font-size:9pt;white-space:pre-wrap;word-break:break-word;}
+ul,ol{margin:6px 0;padding-left:22px;}
+li{margin-bottom:4px;}
+.page-break{page-break-before:always;border-top:2px solid #0d1b2a;margin-top:60px;padding-top:20px;}
+</style>
+</head>
+<body>
+
+<h1>Priority 3 — Databases: SQL, MongoDB &amp; Redis</h1>
+<p><strong>Weight:</strong> Highest in Pakistani market | Medium-High internationally | <strong>Estimated prep time: 16 hrs</strong></p>
+
+<div class="box-depth">
+<strong>Depth Guide:</strong>
+<span class="must">[MUST KNOW]</span> — Core. Every interview asks this.<br>
+<span class="should">[SHOULD KNOW]</span> — Differentiates senior from mid-level.<br>
+<span class="bonus">[BONUS]</span> — Awareness is enough unless role specifically requires it.
+</div>
+
+<h2>Topic 1: SQL vs NoSQL — The Decision Framework</h2>
+<p>This is always asked. Don't say "it depends" without explaining exactly what it depends on.</p>
+
+<table>
+<tr><th>Factor</th><th>Choose SQL (PostgreSQL/MySQL)</th><th>Choose NoSQL (MongoDB/DynamoDB)</th></tr>
+<tr><td>Data structure</td><td>Structured, consistent schema, clear relationships</td><td>Variable schema, nested/hierarchical data, frequent schema changes</td></tr>
+<tr><td>Query patterns</td><td>Complex queries, JOINs, aggregations, ad-hoc queries</td><td>Known access patterns, key-value lookups, document-centric reads</td></tr>
+<tr><td>Consistency</td><td>Strong consistency required (financial, medical)</td><td>Eventual consistency acceptable (social, analytics)</td></tr>
+<tr><td>Scale</td><td>Vertical + read replicas handles most use cases</td><td>Built for horizontal write scaling out of the box</td></tr>
+<tr><td>Transactions</td><td>ACID transactions across multiple records/tables</td><td>MongoDB supports transactions but performance cost is high</td></tr>
+<tr><td>Team expertise</td><td>Team knows SQL well (almost always)</td><td>Specific use case that SQL handles poorly</td></tr>
+</table>
+
+<div class="box-warn">
+<strong>Common Wrong Answers:</strong> "NoSQL is faster than SQL" — false. A properly indexed PostgreSQL query is faster than a MongoDB query in most cases. "NoSQL scales, SQL doesn't" — PostgreSQL with read replicas scales to millions of requests/day for most applications. Don't jump to NoSQL without a concrete reason.
+</div>
+
+<div class="box-q">Q: When would you choose MongoDB over PostgreSQL for a new project?</div>
+<div class="box-a">
+<strong>Answer:</strong> I'd choose MongoDB when: (1) The data is genuinely document-shaped — e.g., e-commerce product catalog where each product category has wildly different attributes. Forcing this into relational tables requires many nullable columns or a EAV pattern, both painful. (2) Schema evolves rapidly in early startup phases — MongoDB's flexible schema lets you iterate fast before the data model stabilizes. (3) The access patterns are always "load this user's entire profile" — document model means you get the whole document in one read without JOINs.<br>
+I'd stay with PostgreSQL for: anything with complex relational queries, reporting/analytics (SQL is far more expressive), anything requiring strong ACID transactions, and anywhere the team knows SQL well. PostgreSQL with JSONB can also handle semi-structured data, giving you the flexibility of document storage with relational SQL power.
+</div>
+
+<h2>Topic 2: Indexing — The Most Asked DB Topic</h2>
+
+<h3>B-Tree Index Internals (Know the Concept, Not the Code)</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>What a B-Tree index is:</strong> A self-balancing tree data structure. Leaf nodes contain the indexed column values pointing to the actual table rows (heap tuples). Tree is kept balanced so any lookup is O(log N) instead of O(N) full table scan. An index on a 10M row table has ~log_100(10M) ≈ 3–4 node reads to find a value — extremely fast.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>When indexes help:</strong> Equality lookups (<code>WHERE id = 5</code>), range queries (<code>WHERE created_at &gt; '2024-01-01'</code>), ORDER BY (if index matches sort direction), JOIN columns, WHERE clause columns with high cardinality (many distinct values).</li>
+<li><span class="must">[MUST KNOW]</span> <strong>When indexes do NOT help (or hurt):</strong> Low cardinality columns (boolean, status with 3 values — full table scan faster). Very small tables (&lt;1000 rows). Write-heavy tables (index must be maintained on every INSERT/UPDATE/DELETE — overhead). Wildcard leading search (<code>LIKE '%john'</code> — can't use index). Functions on indexed column (<code>WHERE LOWER(email) = 'x'</code> — create a functional index instead).</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Composite Index Column Order:</strong> Rule: most selective column first. Or: match your most common query's WHERE clause order. Index on <code>(a, b, c)</code> can be used for queries on <code>(a)</code>, <code>(a, b)</code>, or <code>(a, b, c)</code> — but NOT <code>(b)</code> alone or <code>(b, c)</code> alone (leftmost prefix rule).</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Covering Index:</strong> Index that contains all columns needed for a query — no need to read the actual table rows (heap). Example: query <code>SELECT email FROM users WHERE status = 'active'</code> — an index on <code>(status, email)</code> is a covering index. Eliminates random I/O to table. Significant performance boost for read-heavy queries.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Index Selectivity:</strong> High selectivity = few rows match = index very useful. Low selectivity = many rows match = index less useful (reading many pages, might as well scan). Rule of thumb: if a query returns &gt;10–15% of rows, DB may choose a full table scan over the index.</li>
+</ul>
+
+<pre>
+-- How to read EXPLAIN output (PostgreSQL)
+EXPLAIN ANALYZE SELECT * FROM orders WHERE user_id = 123 AND status = 'pending';
+
+-- Good output (using index):
+Index Scan using idx_orders_user_status on orders
+  Index Cond: ((user_id = 123) AND (status = 'pending'))
+  Actual rows: 15  Actual time: 0.05ms
+
+-- Bad output (not using index):
+Seq Scan on orders  -- sequential scan = full table
+  Filter: ((user_id = 123) AND (status = 'pending'))
+  Rows Removed by Filter: 995000
+  Actual rows: 15  Actual time: 312ms  -- 6000x slower
+
+-- Fix: create composite index
+CREATE INDEX idx_orders_user_status ON orders (user_id, status);
+-- user_id first (higher cardinality), status second (low cardinality but used in query)
+</pre>
+
+<div class="box-q">Q: You have a query: SELECT * FROM orders WHERE user_id = 123 AND status = 'pending' ORDER BY created_at DESC. Design the optimal index.</div>
+<div class="box-a">
+<strong>Answer:</strong> The optimal index is <code>CREATE INDEX ON orders (user_id, status, created_at DESC);</code><br>
+Reasoning: <code>user_id</code> goes first — highest cardinality, most selective, will filter to just this user's orders. <code>status</code> goes second — low cardinality alone but here it further filters. <code>created_at DESC</code> goes last — allows sorting without a separate sort operation. The index serves the full query: equality on user_id, equality on status, ordered scan on created_at. This is also nearly a covering index (missing only the columns in SELECT *; if we only needed specific columns, we'd add them to make it covering). If the query uses a LIMIT clause, the DB can stop scanning after N rows instead of sorting everything.
+</div>
+
+<h2>Topic 3: ACID Properties &amp; Transactions</h2>
+
+<h3>ACID — Examples Are Essential</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>Atomicity:</strong> All operations in a transaction succeed, or all are rolled back. Example: transferring $100 — debit account A AND credit account B must both succeed, or neither happens. Implemented via undo logs.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Consistency:</strong> Transaction brings DB from one valid state to another. All constraints (foreign keys, unique, NOT NULL, check constraints) must hold before and after. Example: you can't transfer $100 if account A has $50 — the constraint (balance &gt;= 0) would be violated.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Isolation:</strong> Concurrent transactions don't see each other's intermediate state. The tricky one — isolation level determines exactly how much isolation you get. See below.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Durability:</strong> Committed transactions survive crashes. Implemented via Write-Ahead Log (WAL) — changes written to log before being applied to data files. On crash recovery, replay the log.</li>
+</ul>
+
+<h3>Isolation Levels</h3>
+<table>
+<tr><th>Isolation Level</th><th>Dirty Read</th><th>Non-Repeatable Read</th><th>Phantom Read</th><th>Use Case</th></tr>
+<tr><td>READ UNCOMMITTED</td><td>Possible</td><td>Possible</td><td>Possible</td><td>Almost never — too risky</td></tr>
+<tr><td>READ COMMITTED (default in PostgreSQL)</td><td>Prevented</td><td>Possible</td><td>Possible</td><td>General OLTP — good balance</td></tr>
+<tr><td>REPEATABLE READ (default in MySQL)</td><td>Prevented</td><td>Prevented</td><td>Possible (in MySQL; not in PG)</td><td>Reports that read multiple rows consistently</td></tr>
+<tr><td>SERIALIZABLE</td><td>Prevented</td><td>Prevented</td><td>Prevented</td><td>Financial transactions, anything requiring full isolation</td></tr>
+</table>
+
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>Dirty Read:</strong> Reading uncommitted data from another transaction. T1 writes X=10 (not committed), T2 reads X=10, T1 rolls back — T2 used incorrect data.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Non-Repeatable Read:</strong> Same row read twice in one transaction gives different results because another transaction committed an update in between.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Phantom Read:</strong> Range query returns different rows on second read because another transaction inserted/deleted rows matching the range.</li>
+</ul>
+
+<h3>Deadlocks</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>How deadlocks occur:</strong> T1 locks row A then tries to lock row B. T2 has row B locked and tries to lock row A. Circular wait — neither can proceed. DB detects and kills one transaction (rolls it back), returning an error.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Prevention:</strong> Always acquire locks in the same consistent order across all transactions. Use shorter transactions (hold locks for less time). Use SELECT FOR UPDATE SKIP LOCKED for queue-like patterns.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Optimistic vs Pessimistic Locking:</strong> Pessimistic = lock rows before reading/updating (<code>SELECT ... FOR UPDATE</code>). Good when conflicts are frequent. Optimistic = no locks; at commit time, check if data changed since read (version column or timestamp). Good when conflicts are rare — avoids lock overhead. Use a <code>version</code> column: <code>UPDATE items SET qty = qty-1, version = version+1 WHERE id = 5 AND version = 3</code> — if 0 rows affected, conflict occurred.</li>
+</ul>
+
+<div class="box-q">Q: Explain ACID with a bank transfer example. What isolation level would you use?</div>
+<div class="box-a">
+<strong>Answer:</strong> Transfer $100 from account A to account B:<br>
+<strong>Atomicity:</strong> Both the debit (A -= 100) and credit (B += 100) are in one transaction. If the credit fails, the debit is rolled back — you don't lose money.<br>
+<strong>Consistency:</strong> Business rule: balance cannot go below 0. The transaction enforces this — if A has $50, it's rejected before any changes happen.<br>
+<strong>Isolation:</strong> If two transfers happen simultaneously, isolation prevents them from reading each other's partial state. Without isolation, two concurrent transfers of $100 from the same $150 account could both think there's enough balance — both succeed — but total is $250 withdrawn from $150 (race condition).<br>
+<strong>Durability:</strong> Once you get "transfer confirmed," the data is written to disk via WAL. A server crash right after doesn't lose the transfer.<br>
+<strong>Isolation Level:</strong> SERIALIZABLE for financial transactions — complete isolation prevents any concurrent anomalies. The performance cost is acceptable because money correctness is non-negotiable.
+</div>
+
+<h2>Topic 4: Advanced SQL</h2>
+
+<h3>N+1 Problem</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>What it is:</strong> Fetching a list of N records, then making N additional queries to fetch related data — total: N+1 queries. Example: fetch 100 posts (1 query), then for each post fetch the author (100 queries) = 101 queries. Destroys performance at scale.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Solutions:</strong> (1) Eager loading with JOIN — fetch posts and authors in one query. (2) DataLoader (Node.js) — batch and deduplicate queries within a single request cycle (essential for GraphQL). (3) SQL IN clause — fetch all 100 author IDs in one query: <code>WHERE id IN (1, 2, ...100)</code>. (4) ORM includes: Mongoose <code>.populate()</code>, Sequelize <code>include:</code>.</li>
+</ul>
+
+<h3>CTEs and Window Functions</h3>
+<pre>
+-- CTE (Common Table Expression) — WITH clause
+-- Use for: breaking complex queries into readable steps, recursive queries
+WITH monthly_revenue AS (
+  SELECT 
+    DATE_TRUNC('month', created_at) AS month,
+    SUM(amount) AS revenue
+  FROM orders
+  WHERE status = 'completed'
+  GROUP BY 1
+),
+ranked AS (
+  SELECT 
+    month, revenue,
+    LAG(revenue) OVER (ORDER BY month) AS prev_month_revenue
+  FROM monthly_revenue
+)
+SELECT 
+  month,
+  revenue,
+  prev_month_revenue,
+  ROUND((revenue - prev_month_revenue) / prev_month_revenue * 100, 2) AS growth_pct
+FROM ranked
+ORDER BY month;
+
+-- Window Functions — calculations across rows related to current row
+-- ROW_NUMBER: unique sequential row number
+SELECT 
+  id, user_id, amount,
+  ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY created_at DESC) AS rn
+FROM orders;
+-- Use this to get "latest order per user" by filtering WHERE rn = 1
+
+-- RANK vs DENSE_RANK: RANK leaves gaps (1,2,2,4). DENSE_RANK doesn't (1,2,2,3)
+-- LAG/LEAD: access previous/next row value
+-- SUM/AVG OVER: running totals, moving averages
+</pre>
+
+<div class="box-q">Q: Write a query to find the top 3 customers by total spend per country.</div>
+<div class="box-a">
+<pre>
+WITH customer_spend AS (
+  SELECT 
+    c.id AS customer_id,
+    c.name,
+    c.country,
+    SUM(o.amount) AS total_spend
+  FROM customers c
+  JOIN orders o ON o.customer_id = c.id
+  WHERE o.status = 'completed'
+  GROUP BY c.id, c.name, c.country
+),
+ranked AS (
+  SELECT *,
+    DENSE_RANK() OVER (PARTITION BY country ORDER BY total_spend DESC) AS rank
+  FROM customer_spend
+)
+SELECT customer_id, name, country, total_spend, rank
+FROM ranked
+WHERE rank <= 3
+ORDER BY country, rank;
+</pre>
+Key points to explain: Using DENSE_RANK so ties don't cause fewer than 3 results per country. CTE for readability and reuse. PARTITION BY country to reset ranking per country. Filtering on PARTITION+RANK is the classic pattern for "top N per group" — interviewers love this.
+</div>
+
+<h2>Topic 5: MongoDB Deep Dive</h2>
+
+<h3>Aggregation Pipeline</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>Core pipeline stages:</strong> <code>$match</code> (filter — put early to reduce documents), <code>$group</code> (aggregate — like SQL GROUP BY), <code>$project</code> (shape output — include/exclude/compute fields), <code>$sort</code>, <code>$limit</code>, <code>$skip</code> (pagination), <code>$lookup</code> (JOIN — performance-sensitive, use sparingly), <code>$unwind</code> (flatten arrays)</li>
+</ul>
+
+<pre>
+// Find top 5 categories by total revenue, last 30 days
+db.orders.aggregate([
+  // Stage 1: filter recent orders
+  { $match: { 
+    status: 'completed',
+    createdAt: { $gte: new Date(Date.now() - 30*24*60*60*1000) }
+  }},
+  // Stage 2: unwind items array (one doc per item)
+  { $unwind: '$items' },
+  // Stage 3: group by category
+  { $group: {
+    _id: '$items.category',
+    totalRevenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } },
+    orderCount: { $sum: 1 }
+  }},
+  // Stage 4: sort by revenue desc
+  { $sort: { totalRevenue: -1 } },
+  // Stage 5: top 5 only
+  { $limit: 5 },
+  // Stage 6: reshape output
+  { $project: {
+    category: '$_id',
+    totalRevenue: { $round: ['$totalRevenue', 2] },
+    orderCount: 1,
+    _id: 0
+  }}
+]);
+</pre>
+
+<h3>MongoDB Indexes</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> Single field index, compound index (same leftmost prefix rule as SQL), text index (full-text search), 2dsphere (geospatial). <code>db.collection.createIndex({field: 1})</code> (1 = ascending, -1 = descending).</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Index strategies for MongoDB:</strong> <code>explain("executionStats")</code> to check if index is used. COLLSCAN (collection scan) = no index used = slow. IXSCAN = index used = fast. Sparse indexes (only index documents that have the field). Partial indexes (index only documents matching a filter).</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Replica Sets:</strong> Primary handles writes. Secondaries replicate asynchronously. If primary fails, secondaries elect a new primary (Raft-like election). Read preference: primary (default, consistent), secondaryPreferred (better read performance, slight staleness).</li>
+</ul>
+
+<div class="box-q">Q: When would you use $lookup vs embedding in MongoDB?</div>
+<div class="box-a">
+<strong>Answer:</strong> This is a schema design decision. Embed when: the subdocument is always accessed with its parent (user profile → user address), the subdocument doesn't grow unboundedly, you don't need to query the subdocument independently. Use references + $lookup when: the referenced entity is shared across multiple documents (orders → products — one product referenced by many orders), the referenced document changes frequently (embed would require updating many documents), the subdocument could grow unboundedly (user → posts — don't embed all posts in the user document).<br>
+Practical rule: embed for "is a part of" relationships. Reference for "is related to" relationships. And be aware that $lookup is a cross-collection join in MongoDB — it's less efficient than embedding and can be a performance bottleneck at high volume. Design your schema around your primary access patterns.
+</div>
+
+<h2>Topic 6: Redis</h2>
+
+<h3>Data Structures and When to Use Them</h3>
+<table>
+<tr><th>Structure</th><th>Commands</th><th>Use Case</th></tr>
+<tr><td>String</td><td>GET, SET, INCR, EXPIRE</td><td>Cache any value, counters, rate limiting counters, session tokens</td></tr>
+<tr><td>Hash</td><td>HGET, HSET, HGETALL</td><td>User sessions (field per session attribute), object caching without serializing entire JSON</td></tr>
+<tr><td>List</td><td>LPUSH, RPOP, LRANGE</td><td>Message queues (LPUSH producer, BRPOP consumer), recent activity feeds, job queues</td></tr>
+<tr><td>Set</td><td>SADD, SISMEMBER, SMEMBERS, SINTER</td><td>Unique visitors, tags, "users who liked this post", friend lists</td></tr>
+<tr><td>Sorted Set</td><td>ZADD, ZRANGE, ZRANGEBYSCORE, ZRANK</td><td>Leaderboards (score = points), rate limiting (score = timestamp), priority queues, time-series</td></tr>
+<tr><td>Stream</td><td>XADD, XREAD, XGROUP</td><td>Event log, message bus with consumer groups (Kafka-like in Redis)</td></tr>
+</table>
+
+<h3>Common Redis Patterns</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>Distributed Lock:</strong> <code>SET lock:resource uniqueId NX EX 30</code> — NX = only set if not exists, EX 30 = expire in 30 seconds. Release: only release if value matches uniqueId (Lua script for atomicity). Prevents race conditions across distributed services. Note: single Redis instance lock is not truly safe under partitions (use Redlock algorithm for multi-node).</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Rate Limiting:</strong> INCR + EXPIRE pattern: <code>INCR rate:userId:minute → if == 1: EXPIRE rate:userId:minute 60 → if result > limit: reject</code>. Or sorted set sliding window (see System Design doc).</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Session Storage:</strong> <code>SET session:sessionId {userId, roles, ...} EX 3600</code>. On request: GET session:sessionId. On logout: DEL session:sessionId. Instant revocation — unlike JWTs.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Pub/Sub:</strong> Publisher: <code>PUBLISH channel message</code>. Subscriber: <code>SUBSCRIBE channel</code>. Fire-and-forget — no message persistence. Messages lost if subscriber is offline. Use for real-time events between services when message loss is acceptable. Use Redis Streams for durability.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Persistence:</strong> RDB (snapshot) — periodic point-in-time snapshots to disk. Fast restart, but data loss between snapshots. AOF (Append-Only File) — log every write operation. Slower restart, less data loss. Most production setups: AOF with RDB as backup. <code>appendfsync everysec</code> — sync to disk every second (max 1 second data loss).</li>
+</ul>
+
+<div class="box-q">Q: How would you implement a leaderboard for a gaming app using Redis?</div>
+<div class="box-a">
+<strong>Answer:</strong> Perfect use case for Sorted Sets. Score = player's points, member = playerId.
+<pre>
+// Add/update player score
+await redis.zadd('leaderboard:global', score, userId);
+
+// Get top 10 players with scores (descending)
+const top10 = await redis.zrevrange('leaderboard:global', 0, 9, 'WITHSCORES');
+
+// Get a player's rank (0-indexed, so +1)
+const rank = await redis.zrevrank('leaderboard:global', userId);
+
+// Get players around a specific player (neighborhood rank)
+const myRank = await redis.zrevrank('leaderboard:global', userId);
+const neighborhood = await redis.zrevrange('leaderboard:global', 
+  Math.max(0, myRank - 5), myRank + 5, 'WITHSCORES');
+</pre>
+Sorted Sets give O(log N) insert/update and O(log N + K) range query where K is result size. For a 10M player leaderboard, this is still extremely fast. For multiple leaderboards (daily/weekly/global): separate keys with TTL on time-based ones. For regional leaderboards: key per region.
+</div>
+
+<h2>Topic 7: Database Schema Design</h2>
+
+<h3>Normalization (Know the Concepts)</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>1NF:</strong> Atomic values — no repeating groups, no arrays in a column. Each row uniquely identified.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>2NF:</strong> 1NF + no partial dependencies. Every non-key column depends on the entire primary key (relevant for composite keys).</li>
+<li><span class="must">[MUST KNOW]</span> <strong>3NF:</strong> 2NF + no transitive dependencies. Non-key columns depend only on the primary key, not on other non-key columns. Example: if Employee table has DeptName and DeptLocation — DeptLocation depends on DeptName, not directly on EmployeeId. Fix: separate Department table.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Denormalization:</strong> Intentionally violate normalization for read performance. Store derived/aggregated data to avoid expensive JOINs. Trade-off: write complexity (maintain denormalized copies) vs read speed. Common in reporting, analytics, high-read systems.</li>
+</ul>
+
+<h3>Schema Design Exercise</h3>
+<div class="box-q">Q: Design the database schema for an e-commerce order system (PostgreSQL).</div>
+<div class="box-a">
+<pre>
+-- Users
+CREATE TABLE users (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email       VARCHAR(255) UNIQUE NOT NULL,
+  name        VARCHAR(255) NOT NULL,
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Products
+CREATE TABLE products (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name        VARCHAR(255) NOT NULL,
+  price       DECIMAL(10,2) NOT NULL CHECK (price >= 0),
+  stock_qty   INTEGER NOT NULL DEFAULT 0 CHECK (stock_qty >= 0),
+  category_id UUID REFERENCES categories(id),
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Orders
+CREATE TABLE orders (
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id        UUID NOT NULL REFERENCES users(id),
+  status         VARCHAR(50) NOT NULL DEFAULT 'pending' 
+                   CHECK (status IN ('pending','paid','shipped','delivered','cancelled')),
+  total_amount   DECIMAL(10,2) NOT NULL,
+  idempotency_key VARCHAR(255) UNIQUE, -- prevents duplicate orders
+  created_at     TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Order items (many-to-many: orders ↔ products)
+CREATE TABLE order_items (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id    UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  product_id  UUID NOT NULL REFERENCES products(id),
+  quantity    INTEGER NOT NULL CHECK (quantity > 0),
+  unit_price  DECIMAL(10,2) NOT NULL, -- snapshot price at time of order
+  UNIQUE(order_id, product_id)
+);
+
+-- Key indexes
+CREATE INDEX idx_orders_user_id ON orders (user_id);
+CREATE INDEX idx_orders_status_created ON orders (status, created_at DESC);
+CREATE INDEX idx_order_items_order ON order_items (order_id);
+</pre>
+Key design decisions to explain: UUID primary keys (vs serial integers) — portable, no centralized counter needed. <code>unit_price</code> in order_items — snapshot the price at order time, not a FK to current price (prices change). idempotency_key on orders — prevents duplicate orders from network retries. ON DELETE CASCADE on order_items — deleting an order deletes its items. CHECK constraints enforce business rules at DB level.
+</div>
+
+<h2>Quick Reference: Database Questions</h2>
+<table>
+<tr><th>Question</th><th>One-Line Answer</th></tr>
+<tr><td>What is an index?</td><td>B-tree structure on column(s) that allows O(log N) lookup instead of O(N) scan</td></tr>
+<tr><td>What is a covering index?</td><td>Index containing all columns a query needs — no table row read required</td></tr>
+<tr><td>Explain ACID</td><td>Atomicity (all or nothing), Consistency (valid state), Isolation (concurrent transactions don't interfere), Durability (committed = persisted)</td></tr>
+<tr><td>What isolation level prevents phantom reads?</td><td>SERIALIZABLE (and Repeatable Read in PostgreSQL due to SSI)</td></tr>
+<tr><td>What is a deadlock?</td><td>Two transactions waiting for each other's locks — DB detects and kills one</td></tr>
+<tr><td>N+1 problem?</td><td>1 query to get list + N queries for each item's related data — fix with JOINs/eager loading</td></tr>
+<tr><td>When to use Redis sorted set?</td><td>Leaderboards, rate limiting with timestamps, priority queues — anything needing ordered data with fast range queries</td></tr>
+<tr><td>RDB vs AOF in Redis?</td><td>RDB = periodic snapshots (fast start, data loss). AOF = every write logged (slow start, less loss)</td></tr>
+<tr><td>SQL vs NoSQL choice?</td><td>SQL for relational data, complex queries, ACID. NoSQL for flexible schema, high write throughput, document-shaped data</td></tr>
+<tr><td>What is connection pooling?</td><td>Reusing pre-created DB connections instead of creating new ones per request — prevents connection exhaustion</td></tr>
+</table>
+
+</body>
+</html>

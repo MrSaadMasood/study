@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>P5 — React &amp; Frontend</title>
+<style>
+body{font-family:Arial,sans-serif;margin:48px;color:#1a1a1a;line-height:1.7;}
+h1{font-size:22pt;color:#0d1b2a;border-bottom:3px solid #0d1b2a;padding-bottom:8px;}
+h2{font-size:16pt;color:#1b2838;border-bottom:2px solid #1565c0;padding-bottom:4px;margin-top:36px;}
+h3{font-size:13pt;color:#1b2838;margin-top:24px;}
+h4{font-size:11pt;color:#37474f;margin-top:16px;text-decoration:underline;}
+table{border-collapse:collapse;width:100%;margin:16px 0;font-size:10pt;}
+th{background:#0d1b2a;color:#fff;padding:10px 8px;text-align:left;}
+td{border:1px solid #ccc;padding:8px;vertical-align:top;}
+tr:nth-child(even) td{background:#f8f9fa;}
+.must{color:#1b5e20;font-weight:bold;}
+.should{color:#bf360c;font-weight:bold;}
+.bonus{color:#880e4f;font-weight:bold;}
+.box-q{background:#fff8e1;border-left:4px solid #f9a825;padding:10px 14px;margin:10px 0;font-weight:bold;}
+.box-a{background:#e8f5e9;border-left:4px solid #43a047;padding:10px 14px;margin:4px 0 20px 0;}
+.box-depth{background:#e3f2fd;border-left:4px solid #1976d2;padding:10px 14px;margin:10px 0;}
+.box-tip{background:#e0f2f1;border-left:4px solid #00897b;padding:10px 14px;margin:10px 0;}
+.box-warn{background:#fce4ec;border-left:4px solid #e91e63;padding:10px 14px;margin:10px 0;}
+code{background:#f5f5f5;padding:2px 5px;border-radius:3px;font-family:'Courier New',monospace;font-size:9.5pt;}
+pre{background:#1a1a2e;color:#e0e0e0;padding:14px;border-radius:5px;font-size:9pt;white-space:pre-wrap;word-break:break-word;}
+ul,ol{margin:6px 0;padding-left:22px;}
+li{margin-bottom:4px;}
+.page-break{page-break-before:always;border-top:2px solid #0d1b2a;margin-top:60px;padding-top:20px;}
+</style>
+</head>
+<body>
+
+<h1>Priority 5 — React &amp; Frontend Depth</h1>
+<p><strong>Weight:</strong> High in Pakistani market | Medium internationally for backend-leaning roles | <strong>Estimated prep time: 14 hrs</strong></p>
+
+<div class="box-depth">
+<strong>Depth Guide:</strong>
+<span class="must">[MUST KNOW]</span> — Basics + internals. Asked in every MERN role.<br>
+<span class="should">[SHOULD KNOW]</span> — Performance + architecture. Shows senior capability.<br>
+<span class="bonus">[BONUS]</span> — Advanced. Mention awareness, deep dive if role is frontend-heavy.
+</div>
+
+<h2>Topic 1: React Internals — Virtual DOM &amp; Reconciliation</h2>
+
+<h3>Virtual DOM</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>What it is:</strong> A lightweight JavaScript object representation of the real DOM. React maintains a tree of these objects in memory. When state changes, React creates a new virtual DOM tree and compares it with the previous one (diffing). Only the actual differences are applied to the real DOM. Real DOM manipulation is slow — batching changes through virtual DOM makes React fast.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Why it exists:</strong> Directly manipulating the real DOM on every state change would be O(nodes in DOM) and cause unnecessary reflows/repaints. Virtual DOM lets React batch and optimize updates.</li>
+</ul>
+
+<h3>Reconciliation (React Fiber)</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>Diffing algorithm:</strong> React's reconciliation makes two assumptions that allow O(n) comparison instead of O(n³): (1) Elements of different types produce different trees — React destroys old tree and builds new. (2) Key prop lets React identify which items in a list changed/moved/added — without keys, React can only tell something changed, not what.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Why keys matter:</strong> Without keys, React diffs a list by position. If you insert a new item at the top of a list, React thinks every item changed (position shift). With stable keys (item ID, not array index), React knows only 1 item was added. Using array index as key breaks this optimization and can cause state bugs.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Render phase vs Commit phase:</strong> Render phase = React builds new virtual DOM tree (can be paused/restarted by Fiber scheduler — this is why render must be pure, no side effects). Commit phase = React applies changes to real DOM (synchronous, cannot be interrupted). <code>useEffect</code> runs after commit phase.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>React Fiber:</strong> The reconciler algorithm introduced in React 16. Makes rendering interruptible — React can pause rendering work to handle higher-priority updates (like user input) and resume later. Enables concurrent features (Suspense, transitions). Pre-Fiber (React stack reconciler): rendering was synchronous and non-interruptible.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Batching in React 18:</strong> React 18 automatically batches state updates even in async callbacks (setTimeout, Promises, native event handlers). Pre-React 18: batching only happened inside React event handlers. This reduces unnecessary re-renders.</li>
+</ul>
+
+<div class="box-q">Q: Explain the Virtual DOM and why React uses it.</div>
+<div class="box-a">
+<strong>Answer:</strong> The Virtual DOM is an in-memory JavaScript representation of the real DOM. When component state changes, React creates a new virtual DOM tree and diffs it against the previous one using a O(n) algorithm (Fiber reconciler). Only the actual changes are flushed to the real DOM in a batched commit phase.<br>
+React uses this for two reasons: (1) Real DOM operations trigger browser reflows and repaints, which are expensive. Batching and minimizing DOM mutations improves performance. (2) The virtual DOM lets React maintain a declarative programming model — you describe what the UI should look like, not how to update it. React figures out the minimal set of DOM operations needed.<br>
+Important nuance: the Virtual DOM is not free — there's overhead in diffing. For simple static UIs, direct DOM manipulation can be faster. React's value is for complex, frequently-updating UIs where the diffing overhead is outweighed by the benefit of optimized updates and declarative code.
+</div>
+
+<h2>Topic 2: React Hooks Deep Dive</h2>
+
+<h3>useState</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>Stale closure problem:</strong> If a callback captures a state variable and doesn't update when state changes, it reads the old value. Classic bug with <code>setInterval</code> + state.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Functional updates:</strong> <code>setState(prev => prev + 1)</code> — always gets latest state, safe for async updates. Prefer over <code>setState(count + 1)</code> in async contexts.</li>
+</ul>
+
+<pre>
+// Stale closure bug
+function Counter() {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => {
+      setCount(count + 1); // BUG: count is always 0 (stale closure)
+    }, 1000);
+    return () => clearInterval(id);
+  }, []); // empty deps — never re-registers
+
+  // FIX: functional update
+  useEffect(() => {
+    const id = setInterval(() => {
+      setCount(prev => prev + 1); // always gets latest value
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
+}
+</pre>
+
+<h3>useEffect</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>When it runs:</strong> After every render by default. After renders where specified deps changed (with dep array). Once on mount (empty dep array). Cleanup runs before next effect and on unmount.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Common bugs:</strong> Missing dependency (stale value). Infinite loop (dependency is an object/function created in render — new reference each render → effect fires → state change → re-render → new reference → loop). Objects in deps: use <code>useMemo</code> or move the object outside the component.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Cleanup:</strong> Return a function to clean up subscriptions, timers, event listeners. Without cleanup: memory leaks if component unmounts before async operation completes.</li>
+</ul>
+
+<pre>
+// Proper useEffect with cleanup + abort controller (for async fetches)
+function UserProfile({ userId }) {
+  const [user, setUser] = useState(null);
+  
+  useEffect(() => {
+    const controller = new AbortController();
+    
+    async function fetchUser() {
+      try {
+        const res = await fetch(`/api/users/${userId}`, { signal: controller.signal });
+        const data = await res.json();
+        setUser(data);
+      } catch (err) {
+        if (err.name !== 'AbortError') console.error(err);
+      }
+    }
+    
+    fetchUser();
+    return () => controller.abort(); // cleanup: abort if userId changes or component unmounts
+  }, [userId]); // re-fetch when userId changes
+}
+</pre>
+
+<h3>useMemo &amp; useCallback</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>useMemo:</strong> Memoizes a computed value. Only recomputes when deps change. Use when: expensive computation (sorting, filtering large arrays), or when you need referential equality for an object passed to a child (but prefer redesigning props first).</li>
+<li><span class="must">[MUST KNOW]</span> <strong>useCallback:</strong> Memoizes a function reference. The function is recreated only when deps change. Useful when passing callbacks to memoized children (<code>React.memo</code>) — without useCallback, function reference changes on every render, defeating memo.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>When NOT to use them:</strong> They have overhead (comparison of deps + memoization). Don't add them everywhere "just in case" — profile first. useMemo is only useful if the computation is genuinely expensive OR if referential equality matters for a dependency.</li>
+</ul>
+
+<pre>
+// useMemo for expensive computation
+const sortedItems = useMemo(
+  () => items.slice().sort((a, b) => b.price - a.price),
+  [items] // only re-sort when items array changes
+);
+
+// useCallback to stabilize callback for React.memo child
+const handleDelete = useCallback((id) => {
+  setItems(prev => prev.filter(item => item.id !== id));
+}, []); // no deps: setItems is stable
+
+// React.memo to skip re-render if props unchanged
+const ItemList = React.memo(function ItemList({ items, onDelete }) {
+  // only re-renders if items or onDelete reference changes
+  return items.map(item => <Item key={item.id} item={item} onDelete={onDelete} />);
+});
+</pre>
+
+<h3>useRef</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>Two use cases:</strong> (1) DOM access — <code>ref.current</code> is the actual DOM node. Used for focus management, measuring elements, triggering animations. (2) Mutable value that persists across renders without triggering re-render — unlike state. Use for tracking previous values, storing timers, tracking if component is mounted.</li>
+</ul>
+
+<h3>Custom Hooks</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>What they are:</strong> Functions starting with <code>use</code> that use other hooks internally. Extract reusable stateful logic from components. The same as extracting logic into a utility function, but for stateful logic.</li>
+</ul>
+
+<pre>
+// Custom hook: useDebounce
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debouncedValue;
+}
+
+// Custom hook: useFetch
+function useFetch(url) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true);
+    fetch(url, { signal: controller.signal })
+      .then(r => r.json())
+      .then(setData)
+      .catch(e => { if (e.name !== 'AbortError') setError(e); })
+      .finally(() => setLoading(false));
+    return () => controller.abort();
+  }, [url]);
+  
+  return { data, loading, error };
+}
+</pre>
+
+<div class="box-q">Q: Explain useCallback. When does it actually help and when is it useless?</div>
+<div class="box-a">
+<strong>Answer:</strong> useCallback memoizes a function reference so the same function instance is returned across renders if dependencies haven't changed. It's useful when: (1) Passing a callback to a <code>React.memo</code>-wrapped child component — without useCallback, every render creates a new function reference, which React.memo sees as a prop change and re-renders the child unnecessarily. (2) Using a function as a <code>useEffect</code> dependency — stable reference prevents the effect from re-running on every render.<br>
+It's useless when: (1) The child is not wrapped in React.memo — it re-renders anyway regardless. (2) The component re-renders only occasionally — the memoization overhead isn't worth it. (3) You're optimizing prematurely without profiling first.<br>
+The pattern: useCallback only makes sense when paired with React.memo on the child, or as a useEffect dependency. Without either of those, you're paying the memoization cost for no benefit.
+</div>
+
+<h2>Topic 3: State Management</h2>
+
+<h3>When to Escalate State</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>Local state first (useState):</strong> Component-specific UI state — modal open/closed, form input values, loading flags. Don't reach for global state by default.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Context API:</strong> Good for: theme, locale, auth user, anything that changes infrequently. Bad for: frequently changing data (every Context update re-renders all consumers — use separate contexts or split contexts by update frequency). Not a performance solution for high-update-rate state.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Redux Toolkit:</strong> For complex shared state with many interactions. Slice pattern: each feature gets a slice with state, reducers, actions. <code>createAsyncThunk</code> for async actions. RTK Query for server state + caching (replaces custom fetch logic). Don't use Redux for UI state or server cache — that's overengineering.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>React Query / TanStack Query:</strong> Server state management — fetching, caching, synchronizing, background updates. The stale-while-revalidate pattern: serve stale data immediately while refetching in background. Eliminates most of what people use Redux for (server data in Redux). Use React Query for API data, keep Redux (or Zustand) only for client-side app state.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Zustand:</strong> Minimal global store without Redux boilerplate. Simple API — just a function. No providers needed. Good for medium complexity apps where Redux is overkill.</li>
+</ul>
+
+<div class="box-q">Q: When would you use Redux Toolkit vs React Query vs Context API?</div>
+<div class="box-a">
+<strong>Answer:</strong> These solve different problems and ideally are used together:<br>
+<strong>React Query:</strong> Server state — data that lives on the server and needs to be fetched, cached, synchronized, and invalidated. User lists, posts, product catalog. It handles loading/error states, background refetching, cache invalidation, optimistic updates. This is where most "Redux for API data" anti-patterns come from — React Query does it better.<br>
+<strong>Redux Toolkit:</strong> Complex client-side app state — shopping cart, multi-step form wizard, undo/redo history, anything that multiple unrelated components need to read/write with complex logic. Use when state transitions are complex enough to benefit from Redux DevTools and the predictable state container model.<br>
+<strong>Context API:</strong> Low-frequency global values — current user/auth, theme, locale. Avoid for high-frequency updates.<br>
+<strong>useState/useReducer:</strong> Component-local state first. Always start here.<br>
+In a real app: React Query for all server data, Zustand or Redux Toolkit for complex client state, Context for auth/theme.
+</div>
+
+<h2>Topic 4: Performance Optimization</h2>
+
+<h3>Component-Level Optimization</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>React.memo:</strong> HOC that skips re-render if props are shallowly equal. Use for pure components that re-render too often with same props. Must be combined with stable callback references (useCallback) to be effective.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Code Splitting:</strong> <code>React.lazy()</code> + <code>Suspense</code> for lazy-loading components. Split by route (each route is a separate chunk) — most impactful. Split by feature (heavy modals, charts). Reduces initial bundle size and time-to-interactive.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>List Virtualization:</strong> For long lists (100+ items), only render visible items. Libraries: <code>react-window</code> (lightweight), <code>react-virtualized</code>. Critical for tables, infinite scroll feeds, large option lists.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Avoiding unnecessary re-renders:</strong> (1) Move state down — if state only affects a subtree, keep it in that subtree's root. (2) State colocation — don't lift state higher than necessary. (3) Split contexts — separate Context for frequently-changing vs static values. (4) Profile first using React DevTools Profiler.</li>
+</ul>
+
+<h3>Core Web Vitals</h3>
+<table>
+<tr><th>Metric</th><th>What It Measures</th><th>Good Threshold</th><th>How to Improve</th></tr>
+<tr><td>LCP (Largest Contentful Paint)</td><td>Load performance — time until largest visible element renders</td><td>&lt; 2.5s</td><td>Preload hero images, optimize server response, CDN, remove render-blocking resources</td></tr>
+<tr><td>INP (Interaction to Next Paint)</td><td>Responsiveness — latency from user interaction to next frame paint</td><td>&lt; 200ms</td><td>Reduce JS execution time, debounce handlers, yield to browser with scheduler API</td></tr>
+<tr><td>CLS (Cumulative Layout Shift)</td><td>Visual stability — how much layout shifts unexpectedly</td><td>&lt; 0.1</td><td>Size images/videos explicitly, avoid dynamically injecting content above existing content, use font-display: optional</td></tr>
+</table>
+
+<h2>Topic 5: TypeScript with React</h2>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>Props typing:</strong> Use interface for props (extendable). <code>React.FC&lt;Props&gt;</code> or just function with typed params. Children: <code>React.ReactNode</code> for anything renderable.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Event handlers:</strong> <code>React.ChangeEvent&lt;HTMLInputElement&gt;</code>, <code>React.MouseEvent&lt;HTMLButtonElement&gt;</code>. The generic parameter is the HTML element type.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Generic components:</strong> Components that work with any data type.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Discriminated unions:</strong> Type-safe component variants.</li>
+</ul>
+
+<pre>
+// Props with TypeScript
+interface ButtonProps {
+  label: string;
+  onClick: () => void;
+  variant?: 'primary' | 'secondary' | 'danger';
+  disabled?: boolean;
+  children?: React.ReactNode;
+}
+
+function Button({ label, onClick, variant = 'primary', disabled = false }: ButtonProps) {
+  return <button className={`btn btn-${variant}`} onClick={onClick} disabled={disabled}>{label}</button>;
+}
+
+// Generic component
+interface SelectProps<T> {
+  options: T[];
+  value: T;
+  onChange: (value: T) => void;
+  getLabel: (item: T) => string;
+  getValue: (item: T) => string | number;
+}
+
+function Select<T>({ options, value, onChange, getLabel, getValue }: SelectProps<T>) {
+  return (
+    <select value={String(getValue(value))} onChange={e => {
+      const selected = options.find(o => String(getValue(o)) === e.target.value);
+      if (selected) onChange(selected);
+    }}>
+      {options.map(opt => (
+        <option key={String(getValue(opt))} value={String(getValue(opt))}>
+          {getLabel(opt)}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+// Discriminated union for component variants
+type AlertProps = 
+  | { type: 'success'; message: string }
+  | { type: 'error'; message: string; onRetry: () => void }
+  | { type: 'warning'; message: string; dismissable: boolean };
+</pre>
+
+<h2>Topic 6: JavaScript Fundamentals (Still Asked at 4–5 YOE)</h2>
+
+<h3>Closures</h3>
+<pre>
+// Closure: function retains access to its lexical scope even when executed outside it
+function makeCounter() {
+  let count = 0; // in closure scope
+  return {
+    increment: () => ++count,
+    decrement: () => --count,
+    value: () => count
+  };
+}
+const counter = makeCounter();
+counter.increment(); // 1
+counter.increment(); // 2
+counter.value(); // 2
+// count is private — only accessible through the returned functions
+</pre>
+
+<h3>Prototypal Inheritance</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> Every JavaScript object has a hidden <code>[[Prototype]]</code> property pointing to another object (or null). Property lookup walks up the prototype chain. <code>Object.create(proto)</code> creates an object with proto as its prototype. ES6 <code>class</code> syntax is syntactic sugar over prototype chains.</li>
+</ul>
+
+<h3>this Binding Rules</h3>
+<table>
+<tr><th>Rule</th><th>this value</th><th>Example</th></tr>
+<tr><td>Default binding</td><td>global (undefined in strict mode)</td><td><code>function foo() { this }</code> called directly</td></tr>
+<tr><td>Implicit binding</td><td>The object before the dot</td><td><code>obj.method()</code> — this = obj</td></tr>
+<tr><td>Explicit binding</td><td>First arg of call/apply/bind</td><td><code>fn.call(ctx, ...args)</code></td></tr>
+<tr><td>New binding</td><td>Newly created object</td><td><code>new Constructor()</code></td></tr>
+<tr><td>Arrow function</td><td>Lexical (inherits from surrounding scope)</td><td><code>() => this</code> — captured at definition time</td></tr>
+</table>
+
+<div class="box-q">Q: What is a closure and give a practical use case in a React app?</div>
+<div class="box-a">
+<strong>Answer:</strong> A closure is when an inner function retains access to variables in its outer function's scope even after the outer function has returned. The function "closes over" those variables.<br>
+In React, closures are everywhere. The most practical example: event handler callbacks. When you write <code>onClick={() => handleDelete(item.id)}</code>, the arrow function closes over <code>item.id</code> from the render scope. Each item in the list has its own closure capturing its specific ID.<br>
+The stale closure bug is the most important React closure pitfall: if you capture state in a closure (e.g., inside setInterval) without listing it as a dependency, you get the state value from when the closure was created, not the current value. Fix: either add to dependency array (recreates the closure when state changes) or use the functional update form (<code>setState(prev => ...)</code>) which doesn't need the current state value from closure.
+</div>
+
+<h2>Quick Reference: React Interview Questions</h2>
+<table>
+<tr><th>Question</th><th>One-Line Answer</th><th>Depth</th></tr>
+<tr><td>What is the Virtual DOM?</td><td>In-memory JS representation of DOM — React diffs it to minimize real DOM mutations</td><td>Explain render vs commit phase</td></tr>
+<tr><td>Why do keys matter in lists?</td><td>Stable keys let React identify what changed vs just what position changed — prevents unnecessary remounts and state bugs</td><td>Explain why index as key breaks things</td></tr>
+<tr><td>Difference between useMemo and useCallback?</td><td>useMemo = memoize a value. useCallback = memoize a function reference. Both prevent unnecessary recalculation/recreation.</td><td>When each actually helps</td></tr>
+<tr><td>What is useEffect cleanup used for?</td><td>Teardown subscriptions, timers, event listeners, and abort pending requests when component unmounts or deps change</td><td>AbortController pattern</td></tr>
+<tr><td>useState vs useReducer?</td><td>useState for simple values. useReducer for complex state with multiple sub-values and transitions (like Redux pattern locally)</td><td>When to escalate to useReducer</td></tr>
+<tr><td>What does React.memo do?</td><td>Skips re-render if props are shallowly equal — optimization for pure components</td><td>Must pair with useCallback for functions</td></tr>
+<tr><td>What is prop drilling?</td><td>Passing props through intermediate components that don't use them just to reach a deep child</td><td>Solutions: Context, composition, state management</td></tr>
+<tr><td>Controlled vs uncontrolled component?</td><td>Controlled: form value managed by React state. Uncontrolled: form manages its own state, accessed via ref.</td><td>When to use each</td></tr>
+<tr><td>What is reconciliation?</td><td>React's algorithm to diff virtual DOM trees and determine minimal DOM mutations needed</td><td>Fiber, O(n) assumptions</td></tr>
+<tr><td>How do you optimize a slow React app?</td><td>Profile with DevTools first. Then: React.memo + useCallback, code splitting, virtualization, state colocation, avoid context for high-frequency updates</td><td>Step-by-step profiling approach</td></tr>
+</table>
+
+</body>
+</html>

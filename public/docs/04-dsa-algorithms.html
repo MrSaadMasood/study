@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>P4 — DSA &amp; Algorithms</title>
+<style>
+body{font-family:Arial,sans-serif;margin:48px;color:#1a1a1a;line-height:1.7;}
+h1{font-size:22pt;color:#0d1b2a;border-bottom:3px solid #0d1b2a;padding-bottom:8px;}
+h2{font-size:16pt;color:#1b2838;border-bottom:2px solid #2e7d32;padding-bottom:4px;margin-top:36px;}
+h3{font-size:13pt;color:#1b2838;margin-top:24px;}
+h4{font-size:11pt;color:#37474f;margin-top:16px;text-decoration:underline;}
+table{border-collapse:collapse;width:100%;margin:16px 0;font-size:10pt;}
+th{background:#0d1b2a;color:#fff;padding:10px 8px;text-align:left;}
+td{border:1px solid #ccc;padding:8px;vertical-align:top;}
+tr:nth-child(even) td{background:#f8f9fa;}
+.must{color:#1b5e20;font-weight:bold;}
+.should{color:#bf360c;font-weight:bold;}
+.bonus{color:#880e4f;font-weight:bold;}
+.box-pattern{background:#e8eaf6;border-left:4px solid #3f51b5;padding:10px 14px;margin:10px 0;}
+.box-tip{background:#e0f2f1;border-left:4px solid #00897b;padding:10px 14px;margin:10px 0;}
+.box-warn{background:#fce4ec;border-left:4px solid #e91e63;padding:10px 14px;margin:10px 0;}
+code{background:#f5f5f5;padding:2px 5px;border-radius:3px;font-family:'Courier New',monospace;font-size:9.5pt;}
+pre{background:#1a1a2e;color:#e0e0e0;padding:14px;border-radius:5px;font-size:9pt;white-space:pre-wrap;word-break:break-word;}
+ul,ol{margin:6px 0;padding-left:22px;}
+li{margin-bottom:4px;}
+.page-break{page-break-before:always;border-top:2px solid #0d1b2a;margin-top:60px;padding-top:20px;}
+.prob-table td:first-child{font-weight:bold;white-space:nowrap;}
+</style>
+</head>
+<body>
+
+<h1>Priority 4 — DSA &amp; Algorithms</h1>
+<p><strong>Weight:</strong> Screener round everywhere | Pakistan: Easy–Medium | International: Medium–Hard</p>
+<p><strong>Estimated total: 20 hrs across 8 weeks (daily habit: 1 problem/day minimum)</strong></p>
+
+<div class="box-tip">
+<strong>How to approach DSA in interviews (4–5 YOE level):</strong><br>
+1. <strong>Clarify</strong> the problem out loud — constraints, edge cases, input format.<br>
+2. <strong>Brute force first</strong> — explain it, state time/space complexity.<br>
+3. <strong>Optimize</strong> — identify the bottleneck, apply the right pattern.<br>
+4. <strong>Code</strong> — clean, readable, not clever. Variable names that make sense.<br>
+5. <strong>Test</strong> — walk through with example input, edge cases (empty, single element, all same).<br>
+<strong>At 4–5 YOE you're expected to reach optimal solution or recognize the pattern name, not just brute force.</strong>
+</div>
+
+<div class="box-warn">
+<strong>Depth Guide for DSA:</strong><br>
+Pakistani market: LeetCode Easy–Medium is sufficient. Know patterns, not memorized code.<br>
+International remote (startup/mid-size): Medium fluently + some Hard pattern recognition.<br>
+FAANG-adjacent international: Hard is expected. Out of scope for this 8-week plan — add after job switch.<br>
+<strong>Stop at:</strong> LeetCode Hard. Do not spend 8-week prep time on Hard problems when System Design and Backend depth give more ROI.
+</div>
+
+<h2>Complexity — Know This Cold</h2>
+<table>
+<tr><th>Algorithm / Structure</th><th>Time (Average)</th><th>Time (Worst)</th><th>Space</th></tr>
+<tr><td>Array access</td><td>O(1)</td><td>O(1)</td><td>O(n)</td></tr>
+<tr><td>Array search (unsorted)</td><td>O(n)</td><td>O(n)</td><td>O(1)</td></tr>
+<tr><td>Binary Search</td><td>O(log n)</td><td>O(log n)</td><td>O(1)</td></tr>
+<tr><td>Hash Map get/set</td><td>O(1)</td><td>O(n) collisions</td><td>O(n)</td></tr>
+<tr><td>Tree (BST) search</td><td>O(log n)</td><td>O(n) unbalanced</td><td>O(n)</td></tr>
+<tr><td>Heap insert/extract</td><td>O(log n)</td><td>O(log n)</td><td>O(n)</td></tr>
+<tr><td>BFS / DFS</td><td>O(V + E)</td><td>O(V + E)</td><td>O(V)</td></tr>
+<tr><td>Merge Sort</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n)</td></tr>
+<tr><td>Quick Sort</td><td>O(n log n)</td><td>O(n²) bad pivot</td><td>O(log n)</td></tr>
+</table>
+
+<h2>Pattern 1: Two Pointers</h2>
+<div class="box-pattern">
+<strong>When to recognize:</strong> Sorted array + find pair/triplet meeting a condition. "Two numbers that sum to target." "Remove duplicates in-place." Palindrome check. Reduce O(n²) brute force to O(n).
+</div>
+
+<pre>
+// Template: two pointers from both ends
+function twoPointers(arr, target) {
+  let left = 0, right = arr.length - 1;
+  while (left < right) {
+    const sum = arr[left] + arr[right];
+    if (sum === target) return [left, right];
+    else if (sum < target) left++;
+    else right--;
+  }
+  return [-1, -1];
+}
+
+// Template: two pointers same direction (slow + fast)
+function removeDuplicates(nums) {
+  if (!nums.length) return 0;
+  let slow = 0;
+  for (let fast = 1; fast < nums.length; fast++) {
+    if (nums[fast] !== nums[slow]) {
+      slow++;
+      nums[slow] = nums[fast];
+    }
+  }
+  return slow + 1; // length of unique portion
+}
+</pre>
+
+<strong>Problems to solve (in order):</strong>
+<ol>
+<li>Two Sum II (sorted array) — LC 167</li>
+<li>Valid Palindrome — LC 125</li>
+<li>Remove Duplicates from Sorted Array — LC 26</li>
+<li>Container With Most Water — LC 11</li>
+<li>3Sum — LC 15 (two pointers inside a loop)</li>
+</ol>
+
+<h2>Pattern 2: Sliding Window</h2>
+<div class="box-pattern">
+<strong>When to recognize:</strong> "Subarray/substring of length K" or "longest/shortest subarray satisfying condition." Variable or fixed window. Reduces O(n²) nested loops to O(n).
+</div>
+
+<pre>
+// Fixed window size K
+function maxSumSubarrayOfSizeK(arr, k) {
+  let windowSum = 0, maxSum = 0;
+  for (let i = 0; i < arr.length; i++) {
+    windowSum += arr[i];
+    if (i >= k - 1) {
+      maxSum = Math.max(maxSum, windowSum);
+      windowSum -= arr[i - (k - 1)]; // shrink from left
+    }
+  }
+  return maxSum;
+}
+
+// Variable window — expand right, shrink left when condition violated
+function lengthOfLongestSubstringKDistinct(s, k) {
+  const freq = new Map();
+  let left = 0, maxLen = 0;
+  for (let right = 0; right < s.length; right++) {
+    freq.set(s[right], (freq.get(s[right]) || 0) + 1);
+    while (freq.size > k) { // shrink window
+      freq.set(s[left], freq.get(s[left]) - 1);
+      if (freq.get(s[left]) === 0) freq.delete(s[left]);
+      left++;
+    }
+    maxLen = Math.max(maxLen, right - left + 1);
+  }
+  return maxLen;
+}
+</pre>
+
+<strong>Problems to solve:</strong>
+<ol>
+<li>Longest Substring Without Repeating Characters — LC 3</li>
+<li>Minimum Window Substring — LC 76</li>
+<li>Maximum Sum Subarray of Size K (custom)</li>
+<li>Permutation in String — LC 567</li>
+<li>Sliding Window Maximum — LC 239 (uses deque)</li>
+</ol>
+
+<h2>Pattern 3: Fast &amp; Slow Pointers (Floyd's Algorithm)</h2>
+<div class="box-pattern">
+<strong>When to recognize:</strong> Linked list cycle detection. Middle of linked list. Start of cycle. "Does it loop?"
+</div>
+
+<pre>
+// Detect cycle in linked list
+function hasCycle(head) {
+  let slow = head, fast = head;
+  while (fast && fast.next) {
+    slow = slow.next;
+    fast = fast.next.next;
+    if (slow === fast) return true;
+  }
+  return false;
+}
+
+// Find middle of linked list
+function findMiddle(head) {
+  let slow = head, fast = head;
+  while (fast && fast.next) {
+    slow = slow.next;
+    fast = fast.next.next;
+  }
+  return slow; // slow is at middle when fast reaches end
+}
+</pre>
+
+<strong>Problems to solve:</strong>
+<ol>
+<li>Linked List Cycle — LC 141</li>
+<li>Middle of Linked List — LC 876</li>
+<li>Linked List Cycle II (find start of cycle) — LC 142</li>
+<li>Happy Number — LC 202 (cycle detection on numbers)</li>
+</ol>
+
+<h2>Pattern 4: Binary Search &amp; Variants</h2>
+<div class="box-pattern">
+<strong>When to recognize:</strong> Sorted array + search. "Find target," "find first/last occurrence," "find minimum in rotated array," "search in answer space." O(log n) is the hint.
+</div>
+
+<pre>
+// Standard binary search
+function binarySearch(nums, target) {
+  let left = 0, right = nums.length - 1;
+  while (left <= right) {
+    const mid = left + Math.floor((right - left) / 2); // avoid overflow
+    if (nums[mid] === target) return mid;
+    else if (nums[mid] < target) left = mid + 1;
+    else right = mid - 1;
+  }
+  return -1;
+}
+
+// Find leftmost (first) occurrence
+function findFirst(nums, target) {
+  let left = 0, right = nums.length - 1, result = -1;
+  while (left <= right) {
+    const mid = left + Math.floor((right - left) / 2);
+    if (nums[mid] === target) { result = mid; right = mid - 1; } // keep going left
+    else if (nums[mid] < target) left = mid + 1;
+    else right = mid - 1;
+  }
+  return result;
+}
+
+// Search in rotated sorted array
+function searchRotated(nums, target) {
+  let left = 0, right = nums.length - 1;
+  while (left <= right) {
+    const mid = left + Math.floor((right - left) / 2);
+    if (nums[mid] === target) return mid;
+    // Left half is sorted
+    if (nums[left] <= nums[mid]) {
+      if (target >= nums[left] && target < nums[mid]) right = mid - 1;
+      else left = mid + 1;
+    } else { // Right half is sorted
+      if (target > nums[mid] && target <= nums[right]) left = mid + 1;
+      else right = mid - 1;
+    }
+  }
+  return -1;
+}
+</pre>
+
+<strong>Problems to solve:</strong>
+<ol>
+<li>Binary Search — LC 704</li>
+<li>Search in Rotated Sorted Array — LC 33</li>
+<li>Find First and Last Position of Element — LC 34</li>
+<li>Koko Eating Bananas — LC 875 (binary search on answer)</li>
+<li>Minimum in Rotated Sorted Array — LC 153</li>
+</ol>
+
+<h2>Pattern 5: Tree BFS &amp; DFS</h2>
+<div class="box-pattern">
+<strong>When to recognize:</strong> BFS = level-by-level traversal, shortest path in unweighted graph, "level order," "right side view." DFS = explore all paths, tree structure, "validate," "path sum," "LCA."
+</div>
+
+<pre>
+// BFS — Level Order Traversal
+function levelOrder(root) {
+  if (!root) return [];
+  const result = [], queue = [root];
+  while (queue.length) {
+    const levelSize = queue.length;
+    const level = [];
+    for (let i = 0; i < levelSize; i++) {
+      const node = queue.shift();
+      level.push(node.val);
+      if (node.left) queue.push(node.left);
+      if (node.right) queue.push(node.right);
+    }
+    result.push(level);
+  }
+  return result;
+}
+
+// DFS — recursive
+function maxDepth(root) {
+  if (!root) return 0;
+  return 1 + Math.max(maxDepth(root.left), maxDepth(root.right));
+}
+
+// DFS — iterative (with stack — avoids stack overflow on deep trees)
+function inorderIterative(root) {
+  const result = [], stack = [];
+  let curr = root;
+  while (curr || stack.length) {
+    while (curr) { stack.push(curr); curr = curr.left; }
+    curr = stack.pop();
+    result.push(curr.val);
+    curr = curr.right;
+  }
+  return result;
+}
+
+// Validate BST — pass min/max bounds
+function isValidBST(node, min = -Infinity, max = Infinity) {
+  if (!node) return true;
+  if (node.val <= min || node.val >= max) return false;
+  return isValidBST(node.left, min, node.val) && 
+         isValidBST(node.right, node.val, max);
+}
+</pre>
+
+<strong>Problems to solve:</strong>
+<ol>
+<li>Maximum Depth of Binary Tree — LC 104</li>
+<li>Binary Tree Level Order Traversal — LC 102</li>
+<li>Binary Tree Right Side View — LC 199</li>
+<li>Validate Binary Search Tree — LC 98</li>
+<li>Lowest Common Ancestor of a BST — LC 235</li>
+<li>Path Sum II — LC 113</li>
+</ol>
+
+<h2>Pattern 6: Graph BFS &amp; DFS</h2>
+<div class="box-pattern">
+<strong>When to recognize:</strong> Grid problems (islands, paths). "Connected components." "Can you reach from A to B?" Topological sort for dependency ordering.
+</div>
+
+<pre>
+// Graph BFS — shortest path in unweighted graph
+function bfsShortestPath(graph, start, end) {
+  const visited = new Set([start]);
+  const queue = [[start, 0]]; // [node, distance]
+  while (queue.length) {
+    const [node, dist] = queue.shift();
+    if (node === end) return dist;
+    for (const neighbor of graph[node] || []) {
+      if (!visited.has(neighbor)) {
+        visited.add(neighbor);
+        queue.push([neighbor, dist + 1]);
+      }
+    }
+  }
+  return -1;
+}
+
+// Number of Islands — DFS on grid
+function numIslands(grid) {
+  let count = 0;
+  const dfs = (i, j) => {
+    if (i < 0 || i >= grid.length || j < 0 || j >= grid[0].length || grid[i][j] !== '1') return;
+    grid[i][j] = '0'; // mark visited (modify in place)
+    dfs(i+1, j); dfs(i-1, j); dfs(i, j+1); dfs(i, j-1);
+  };
+  for (let i = 0; i < grid.length; i++)
+    for (let j = 0; j < grid[0].length; j++)
+      if (grid[i][j] === '1') { count++; dfs(i, j); }
+  return count;
+}
+
+// Topological Sort (Kahn's Algorithm — BFS)
+function topologicalSort(numCourses, prerequisites) {
+  const inDegree = new Array(numCourses).fill(0);
+  const graph = Array.from({length: numCourses}, () => []);
+  for (const [a, b] of prerequisites) { graph[b].push(a); inDegree[a]++; }
+  
+  const queue = [];
+  for (let i = 0; i < numCourses; i++) if (inDegree[i] === 0) queue.push(i);
+  
+  const order = [];
+  while (queue.length) {
+    const node = queue.shift();
+    order.push(node);
+    for (const neighbor of graph[node]) {
+      inDegree[neighbor]--;
+      if (inDegree[neighbor] === 0) queue.push(neighbor);
+    }
+  }
+  return order.length === numCourses ? order : []; // empty = cycle exists
+}
+</pre>
+
+<strong>Problems to solve:</strong>
+<ol>
+<li>Number of Islands — LC 200</li>
+<li>Course Schedule — LC 207 (cycle detection)</li>
+<li>Course Schedule II — LC 210 (topological sort)</li>
+<li>Clone Graph — LC 133</li>
+<li>Word Ladder — LC 127 (BFS shortest path)</li>
+<li>Pacific Atlantic Water Flow — LC 417</li>
+</ol>
+
+<h2>Pattern 7: Dynamic Programming</h2>
+<div class="box-pattern">
+<strong>When to recognize:</strong> "Optimal substructure" — optimal solution contains optimal sub-solutions. "Overlapping subproblems" — same subproblem computed many times. "How many ways," "minimum/maximum," "can you reach." If you can define: "state = some parameters" and "transition = how to compute state from smaller states" → it's DP.
+</div>
+
+<pre>
+// 1D DP: House Robber
+// State: dp[i] = max money robbing up to house i
+// Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i])
+function rob(nums) {
+  if (nums.length === 1) return nums[0];
+  let prev2 = 0, prev1 = 0;
+  for (const num of nums) {
+    const curr = Math.max(prev1, prev2 + num);
+    prev2 = prev1;
+    prev1 = curr;
+  }
+  return prev1;
+}
+
+// 2D DP: Longest Common Subsequence
+// State: dp[i][j] = LCS length of s1[0..i-1] and s2[0..j-1]
+function longestCommonSubsequence(text1, text2) {
+  const m = text1.length, n = text2.length;
+  const dp = Array.from({length: m+1}, () => new Array(n+1).fill(0));
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      if (text1[i-1] === text2[j-1]) dp[i][j] = dp[i-1][j-1] + 1;
+      else dp[i][j] = Math.max(dp[i-1][j], dp[i][j-1]);
+    }
+  }
+  return dp[m][n];
+}
+
+// Classic: Coin Change (minimum coins)
+function coinChange(coins, amount) {
+  const dp = new Array(amount + 1).fill(Infinity);
+  dp[0] = 0;
+  for (let i = 1; i <= amount; i++) {
+    for (const coin of coins) {
+      if (coin <= i) dp[i] = Math.min(dp[i], dp[i - coin] + 1);
+    }
+  }
+  return dp[amount] === Infinity ? -1 : dp[amount];
+}
+</pre>
+
+<strong>Problems to solve (in order of difficulty):</strong>
+<ol>
+<li>Climbing Stairs — LC 70 (simplest DP)</li>
+<li>House Robber — LC 198</li>
+<li>Coin Change — LC 322</li>
+<li>Unique Paths — LC 62 (2D DP)</li>
+<li>Longest Common Subsequence — LC 1143</li>
+<li>0/1 Knapsack (classic, not on LC — implement from definition)</li>
+<li>Word Break — LC 139</li>
+<li>Longest Increasing Subsequence — LC 300</li>
+</ol>
+
+<h2>Pattern 8: Heap / Priority Queue</h2>
+<div class="box-pattern">
+<strong>When to recognize:</strong> "Top K elements," "Kth largest/smallest," "median of stream," "merge K sorted lists." Need to efficiently track the minimum or maximum element from a changing set.
+</div>
+
+<pre>
+// JavaScript doesn't have a built-in heap — use sorted array trick for interviews
+// or implement a min-heap. Mention this to the interviewer.
+
+// Top K Frequent Elements — using frequency map + partial sort
+function topKFrequent(nums, k) {
+  const freq = new Map();
+  for (const n of nums) freq.set(n, (freq.get(n) || 0) + 1);
+  
+  // Bucket sort — O(n) approach
+  const buckets = new Array(nums.length + 1).fill(null).map(() => []);
+  for (const [num, count] of freq) buckets[count].push(num);
+  
+  const result = [];
+  for (let i = buckets.length - 1; i >= 0 && result.length < k; i--) {
+    result.push(...buckets[i]);
+  }
+  return result.slice(0, k);
+}
+
+// Kth Largest — QuickSelect algorithm O(n) average
+function findKthLargest(nums, k) {
+  const target = nums.length - k; // kth largest = target-th smallest
+  const quickSelect = (left, right) => {
+    const pivot = nums[right];
+    let p = left;
+    for (let i = left; i < right; i++) {
+      if (nums[i] <= pivot) { [nums[p], nums[i]] = [nums[i], nums[p]]; p++; }
+    }
+    [nums[p], nums[right]] = [nums[right], nums[p]];
+    if (p === target) return nums[p];
+    if (p < target) return quickSelect(p + 1, right);
+    return quickSelect(left, p - 1);
+  };
+  return quickSelect(0, nums.length - 1);
+}
+</pre>
+
+<strong>Problems to solve:</strong>
+<ol>
+<li>Kth Largest Element in Array — LC 215</li>
+<li>Top K Frequent Elements — LC 347</li>
+<li>Find Median from Data Stream — LC 295 (two heaps)</li>
+<li>Merge K Sorted Lists — LC 23</li>
+</ol>
+
+<h2>Pattern 9: Stack Patterns</h2>
+<pre>
+// Monotonic Stack — Next Greater Element pattern
+function dailyTemperatures(temps) {
+  const result = new Array(temps.length).fill(0);
+  const stack = []; // stores indices
+  for (let i = 0; i < temps.length; i++) {
+    while (stack.length && temps[i] > temps[stack[stack.length-1]]) {
+      const idx = stack.pop();
+      result[idx] = i - idx;
+    }
+    stack.push(i);
+  }
+  return result;
+}
+</pre>
+
+<strong>Problems to solve:</strong>
+<ol>
+<li>Valid Parentheses — LC 20</li>
+<li>Min Stack — LC 155</li>
+<li>Daily Temperatures — LC 739</li>
+<li>Largest Rectangle in Histogram — LC 84 (bonus, Hard)</li>
+</ol>
+
+<div class="page-break"></div>
+
+<h2>Problem List — Full 40 Problems</h2>
+<p>Your target for 8 weeks. Mark each as Done when you solve it without hints.</p>
+
+<table class="prob-table">
+<tr><th>#</th><th>Problem</th><th>Pattern</th><th>Difficulty</th><th>LC #</th><th>Done</th></tr>
+<tr><td>1</td><td>Two Sum</td><td>HashMap</td><td>Easy</td><td>1</td><td>☐</td></tr>
+<tr><td>2</td><td>Valid Anagram</td><td>HashMap</td><td>Easy</td><td>242</td><td>☐</td></tr>
+<tr><td>3</td><td>Contains Duplicate</td><td>HashSet</td><td>Easy</td><td>217</td><td>☐</td></tr>
+<tr><td>4</td><td>Group Anagrams</td><td>HashMap sort key</td><td>Medium</td><td>49</td><td>☐</td></tr>
+<tr><td>5</td><td>Longest Substring Without Repeating Chars</td><td>Sliding Window</td><td>Medium</td><td>3</td><td>☐</td></tr>
+<tr><td>6</td><td>Valid Palindrome</td><td>Two Pointers</td><td>Easy</td><td>125</td><td>☐</td></tr>
+<tr><td>7</td><td>Container With Most Water</td><td>Two Pointers</td><td>Medium</td><td>11</td><td>☐</td></tr>
+<tr><td>8</td><td>3Sum</td><td>Two Pointers + Sort</td><td>Medium</td><td>15</td><td>☐</td></tr>
+<tr><td>9</td><td>Binary Search</td><td>Binary Search</td><td>Easy</td><td>704</td><td>☐</td></tr>
+<tr><td>10</td><td>Search in Rotated Sorted Array</td><td>Binary Search</td><td>Medium</td><td>33</td><td>☐</td></tr>
+<tr><td>11</td><td>Find First and Last Position</td><td>Binary Search (left/right boundary)</td><td>Medium</td><td>34</td><td>☐</td></tr>
+<tr><td>12</td><td>Koko Eating Bananas</td><td>Binary Search on answer</td><td>Medium</td><td>875</td><td>☐</td></tr>
+<tr><td>13</td><td>Reverse Linked List</td><td>Linked List</td><td>Easy</td><td>206</td><td>☐</td></tr>
+<tr><td>14</td><td>Linked List Cycle</td><td>Fast/Slow Pointers</td><td>Easy</td><td>141</td><td>☐</td></tr>
+<tr><td>15</td><td>Middle of Linked List</td><td>Fast/Slow Pointers</td><td>Easy</td><td>876</td><td>☐</td></tr>
+<tr><td>16</td><td>Merge Two Sorted Lists</td><td>Linked List</td><td>Easy</td><td>21</td><td>☐</td></tr>
+<tr><td>17</td><td>Maximum Depth of Binary Tree</td><td>Tree DFS</td><td>Easy</td><td>104</td><td>☐</td></tr>
+<tr><td>18</td><td>Binary Tree Level Order Traversal</td><td>Tree BFS</td><td>Medium</td><td>102</td><td>☐</td></tr>
+<tr><td>19</td><td>Binary Tree Right Side View</td><td>Tree BFS</td><td>Medium</td><td>199</td><td>☐</td></tr>
+<tr><td>20</td><td>Validate Binary Search Tree</td><td>Tree DFS + bounds</td><td>Medium</td><td>98</td><td>☐</td></tr>
+<tr><td>21</td><td>Lowest Common Ancestor (BST)</td><td>Tree DFS</td><td>Medium</td><td>235</td><td>☐</td></tr>
+<tr><td>22</td><td>Number of Islands</td><td>Graph DFS/BFS</td><td>Medium</td><td>200</td><td>☐</td></tr>
+<tr><td>23</td><td>Course Schedule</td><td>Graph — Cycle Detection</td><td>Medium</td><td>207</td><td>☐</td></tr>
+<tr><td>24</td><td>Course Schedule II</td><td>Topological Sort</td><td>Medium</td><td>210</td><td>☐</td></tr>
+<tr><td>25</td><td>Clone Graph</td><td>Graph BFS + HashMap</td><td>Medium</td><td>133</td><td>☐</td></tr>
+<tr><td>26</td><td>Pacific Atlantic Water Flow</td><td>Graph DFS from borders</td><td>Medium</td><td>417</td><td>☐</td></tr>
+<tr><td>27</td><td>Climbing Stairs</td><td>DP (1D)</td><td>Easy</td><td>70</td><td>☐</td></tr>
+<tr><td>28</td><td>House Robber</td><td>DP (1D)</td><td>Medium</td><td>198</td><td>☐</td></tr>
+<tr><td>29</td><td>Coin Change</td><td>DP (unbounded knapsack)</td><td>Medium</td><td>322</td><td>☐</td></tr>
+<tr><td>30</td><td>Unique Paths</td><td>DP (2D)</td><td>Medium</td><td>62</td><td>☐</td></tr>
+<tr><td>31</td><td>Longest Common Subsequence</td><td>DP (2D)</td><td>Medium</td><td>1143</td><td>☐</td></tr>
+<tr><td>32</td><td>Word Break</td><td>DP + HashSet</td><td>Medium</td><td>139</td><td>☐</td></tr>
+<tr><td>33</td><td>Longest Increasing Subsequence</td><td>DP / Binary Search</td><td>Medium</td><td>300</td><td>☐</td></tr>
+<tr><td>34</td><td>Kth Largest Element in Array</td><td>QuickSelect / Heap</td><td>Medium</td><td>215</td><td>☐</td></tr>
+<tr><td>35</td><td>Top K Frequent Elements</td><td>Bucket Sort / Heap</td><td>Medium</td><td>347</td><td>☐</td></tr>
+<tr><td>36</td><td>Valid Parentheses</td><td>Stack</td><td>Easy</td><td>20</td><td>☐</td></tr>
+<tr><td>37</td><td>Min Stack</td><td>Stack</td><td>Medium</td><td>155</td><td>☐</td></tr>
+<tr><td>38</td><td>Daily Temperatures</td><td>Monotonic Stack</td><td>Medium</td><td>739</td><td>☐</td></tr>
+<tr><td>39</td><td>Merge Intervals</td><td>Intervals + Sort</td><td>Medium</td><td>56</td><td>☐</td></tr>
+<tr><td>40</td><td>Meeting Rooms II</td><td>Intervals + Heap</td><td>Medium</td><td>253</td><td>☐</td></tr>
+</table>
+
+<h2>Sorting Algorithms — Know the Trade-offs</h2>
+<table>
+<tr><th>Algorithm</th><th>Best</th><th>Average</th><th>Worst</th><th>Space</th><th>Stable</th><th>When to use</th></tr>
+<tr><td>Merge Sort</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n)</td><td>Yes</td><td>Need stable sort, linked lists, external sort</td></tr>
+<tr><td>Quick Sort</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n²)</td><td>O(log n)</td><td>No</td><td>Average case fastest, in-place. Random pivot avoids worst case</td></tr>
+<tr><td>Heap Sort</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n log n)</td><td>O(1)</td><td>No</td><td>Guaranteed O(n log n), O(1) space, but poor cache performance</td></tr>
+<tr><td>Insertion Sort</td><td>O(n)</td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td><td>Yes</td><td>Nearly sorted arrays, small arrays (used inside Timsort)</td></tr>
+<tr><td>Counting Sort</td><td>O(n+k)</td><td>O(n+k)</td><td>O(n+k)</td><td>O(k)</td><td>Yes</td><td>Integers in known range. Not comparison-based.</td></tr>
+</table>
+
+<div class="box-tip">
+<strong>How to talk about an algorithm in an interview:</strong><br>
+1. State the time and space complexity immediately after presenting your solution.<br>
+2. Justify why this is optimal — "I don't think we can do better than O(n) here because we must look at every element."<br>
+3. If the interviewer asks "can you optimize?" — usually means go from O(n²) → O(n log n) → O(n).<br>
+4. Mention trade-offs: "This uses O(n) extra space — if memory is a constraint, we could use the two-pointer approach which is O(1) space."
+</div>
+
+</body>
+</html>
