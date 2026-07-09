@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>P1 — System Design</title>
+<style>
+body{font-family:Arial,sans-serif;margin:48px;color:#1a1a1a;line-height:1.7;}
+h1{font-size:22pt;color:#0d1b2a;border-bottom:3px solid #0d1b2a;padding-bottom:8px;}
+h2{font-size:16pt;color:#1b2838;border-bottom:2px solid #c62828;padding-bottom:4px;margin-top:36px;}
+h3{font-size:13pt;color:#1b2838;margin-top:24px;}
+h4{font-size:11pt;color:#37474f;margin-top:16px;text-decoration:underline;}
+table{border-collapse:collapse;width:100%;margin:16px 0;font-size:10pt;}
+th{background:#0d1b2a;color:#fff;padding:10px 8px;text-align:left;}
+td{border:1px solid #ccc;padding:8px;vertical-align:top;}
+tr:nth-child(even) td{background:#f8f9fa;}
+.must{color:#1b5e20;font-weight:bold;}
+.should{color:#bf360c;font-weight:bold;}
+.bonus{color:#880e4f;font-weight:bold;}
+.box-q{background:#fff8e1;border-left:4px solid #f9a825;padding:10px 14px;margin:10px 0;font-weight:bold;}
+.box-a{background:#e8f5e9;border-left:4px solid #43a047;padding:10px 14px;margin:4px 0 20px 0;}
+.box-depth{background:#e3f2fd;border-left:4px solid #1976d2;padding:10px 14px;margin:10px 0;}
+.box-warn{background:#fce4ec;border-left:4px solid #e91e63;padding:10px 14px;margin:10px 0;}
+.box-tip{background:#e0f2f1;border-left:4px solid #00897b;padding:10px 14px;margin:10px 0;}
+code{background:#f5f5f5;padding:2px 5px;border-radius:3px;font-family:'Courier New',monospace;font-size:9.5pt;}
+pre{background:#1a1a2e;color:#e0e0e0;padding:14px;border-radius:5px;font-size:9pt;white-space:pre-wrap;}
+ul,ol{margin:6px 0;padding-left:22px;}
+li{margin-bottom:4px;}
+.page-break{page-break-before:always;border-top:2px solid #0d1b2a;margin-top:60px;padding-top:20px;}
+.step{display:inline-block;background:#0d1b2a;color:#fff;border-radius:50%;width:22px;height:22px;text-align:center;font-size:10pt;font-weight:bold;line-height:22px;margin-right:6px;}
+</style>
+</head>
+<body>
+
+<h1>Priority 1 — System Design</h1>
+<p><strong>Weight:</strong> Highest for international remote | Medium for Pakistan | <strong>Estimated prep time: 28 hrs</strong></p>
+
+<div class="box-depth">
+<strong>Depth Guide for System Design</strong><br>
+<span class="must">[MUST KNOW]</span> — Core concepts. If you can't explain these clearly, you fail the round.<br>
+<span class="should">[SHOULD KNOW]</span> — Shows senior thinking. Differentiates you from a mid-level candidate.<br>
+<span class="bonus">[BONUS]</span> — Only if you have extra time or the role specifically demands it. Mentioning awareness is enough.
+</div>
+
+<div class="box-tip">
+<strong>The System Design Interview Framework (use every time):</strong><br>
+<strong>1. Clarify Requirements</strong> (2–3 min): Functional requirements. Non-functional (scale, latency, availability). Constraints. Ask, don't assume.<br>
+<strong>2. Back-of-Envelope Estimation</strong> (2–3 min): QPS (queries per second), storage needed, bandwidth. Shows engineering mindset.<br>
+<strong>3. High-Level Design</strong> (5–7 min): Box diagram. Core components. Happy path.<br>
+<strong>4. Deep Dive</strong> (15–20 min): Pick 2–3 components and go deep. Let the interviewer guide which.<br>
+<strong>5. Bottlenecks + Trade-offs</strong> (5 min): What breaks first? How do you scale it? What did you sacrifice?<br>
+<strong>Never jump straight to a solution. Always ask first.</strong>
+</div>
+
+<h2>Topic 1: Scalability Fundamentals</h2>
+
+<h3>Core Concepts</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>Horizontal vs Vertical scaling:</strong> Vertical = bigger machine (CPU/RAM limit, single point of failure). Horizontal = more machines (needs stateless design, load balancer, distributed state). Real systems go horizontal.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Stateless design:</strong> No session data on server. State lives in DB, Redis, or JWT. Every server can handle any request. Prerequisite for horizontal scaling.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>CAP Theorem:</strong> In a network partition, you must choose: Consistency (every read gets latest write) OR Availability (every request gets a response). You cannot have both. CP systems: HBase, ZooKeeper. AP systems: Cassandra, DynamoDB, CouchDB. CA systems: don't exist in distributed systems with partitions.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>PACELC:</strong> Extension of CAP. Even without partitions: trade-off between Latency and Consistency. More relevant in practice.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Eventual consistency:</strong> Nodes will converge to the same state given enough time and no new writes. DNS is a real-world example. Use when strong consistency is too expensive.</li>
+<li><span class="bonus">[BONUS]</span> CRDT (Conflict-free Replicated Data Types) — how systems like Google Docs resolve concurrent edits without conflicts.</li>
+</ul>
+
+<div class="box-q">Q: What's the difference between horizontal and vertical scaling? When would you choose each?</div>
+<div class="box-a">
+<strong>Answer:</strong> Vertical scaling adds more resources to a single server (CPU, RAM, faster storage). It's simple — no code changes needed — but has a hard ceiling and is a single point of failure. Horizontal scaling adds more servers running the same service. It requires stateless design (no in-memory session state; sessions in Redis, state in DB) and a load balancer in front. Vertical is the right first step when you need a quick win and the bottleneck is a single server. Once you hit the vertical ceiling or need high availability, you go horizontal. For a database, vertical scaling (more RAM for buffer pool, faster SSDs) often gets you farther than people expect before you need sharding.
+</div>
+
+<div class="box-q">Q: Explain CAP theorem and give a real example.</div>
+<div class="box-a">
+<strong>Answer:</strong> In a distributed system that experiences a network partition (nodes can't communicate), you must choose between Consistency — every read reflects the most recent write — or Availability — every request receives a response, even if it might be stale. You cannot guarantee both simultaneously. A banking system typically chooses CP: it's better to return an error than to show an incorrect balance. A shopping cart or social media feed typically chooses AP: showing a slightly stale count is acceptable if the system stays up. The real insight is that this is a design decision, not a flaw. You pick your trade-off based on your domain requirements.
+</div>
+
+<h2>Topic 2: Load Balancing</h2>
+
+<h3>Core Concepts</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>L4 vs L7 Load Balancing:</strong> L4 (Transport Layer) routes based on IP/TCP. Fast, can't inspect content. L7 (Application Layer) routes based on HTTP headers, URL, cookies. Can do content-based routing, SSL termination, sticky sessions. Nginx, HAProxy, AWS ALB are L7.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Algorithms:</strong> Round Robin (equal distribution), Weighted Round Robin (different server capacities), Least Connections (route to server with fewest active connections — better than round robin for variable request durations), IP Hash (same client always hits same server — for sticky sessions), Consistent Hashing (used for cache servers — minimizes redistribution when nodes change).</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Health checks:</strong> Active (LB pings servers periodically) vs Passive (LB monitors real traffic for failures). When a server fails health check, traffic is rerouted.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Session Persistence (Sticky Sessions):</strong> Same user always routed to same server. Needed if session state is local. Breaks horizontal scaling benefit. Prefer stateless + Redis sessions instead.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Consistent Hashing:</strong> Hash function maps servers to a ring. Each request maps to nearest server on ring. When adding/removing a server, only ~1/N requests remapped (vs all requests with simple modulo). Used by CDNs, distributed caches, databases.</li>
+</ul>
+
+<div class="box-q">Q: You have a Node.js app with multiple instances. User session breaks when requests hit different servers. How do you fix this?</div>
+<div class="box-a">
+<strong>Answer:</strong> The root cause is server-side session state — sessions stored in memory on individual servers. Two solutions: (1) Sticky sessions at the load balancer — route each user to the same server. Simple but hurts scalability and creates uneven load. If that server dies, session is lost. (2) Externalized sessions — store session data in Redis (or a shared store). Every server can read/write sessions for any user. This is the correct solution for horizontal scalability. I'd choose Redis with express-session or a JWT-based approach so the session data is in the token itself, removing the shared store entirely for stateless services.
+</div>
+
+<h2>Topic 3: Caching</h2>
+
+<h3>Cache Strategies</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>Cache-aside (Lazy Loading):</strong> App checks cache first. On miss, reads from DB, writes to cache, returns data. Cache only contains requested data. Risk: cold start, stale data on DB update. Most common pattern.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Write-through:</strong> Every DB write also writes to cache synchronously. Cache always fresh. Risk: cache grows large with data never read. Write latency increases.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Write-behind (Write-back):</strong> Write to cache immediately, async write to DB. Low write latency. Risk: data loss if cache crashes before DB write.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Cache Invalidation:</strong> The hardest problem. TTL-based (simple, may serve stale). Event-driven invalidation (explicit delete on change — precise but complex). Tag-based invalidation (group related keys, invalidate group). "There are only two hard problems in CS: cache invalidation and naming things."</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Eviction Policies:</strong> LRU (Least Recently Used — most common), LFU (Least Frequently Used — better for skewed access patterns), TTL expiry, Random.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Cache stampede / Thundering Herd:</strong> Many requests hit a cache miss simultaneously, all go to DB. Solutions: probabilistic early expiration, mutex/lock on cache miss, background refresh.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>CDN Caching:</strong> Static assets (images, CSS, JS) served from edge nodes close to users. Cache-Control headers control CDN behavior. <code>Cache-Control: max-age=31536000, immutable</code> for versioned assets.</li>
+<li><span class="bonus">[BONUS]</span> Bloom filters for "definitely not in cache" checks to avoid DB lookups for non-existent keys (cache penetration attack mitigation).</li>
+</ul>
+
+<div class="box-q">Q: How would you cache user profile data that changes infrequently but must be consistent within 1 minute?</div>
+<div class="box-a">
+<strong>Answer:</strong> I'd use cache-aside with a TTL of 60 seconds. On read: check Redis first, if miss read from DB and cache with 60s TTL. On user profile update: write to DB and immediately invalidate (delete) the cache key. This gives you: fresh data within 60 seconds of any change even without explicit invalidation, and immediate freshness for the updated user if you do explicit invalidation. The 60s TTL is a safety net for edge cases (e.g., failed invalidation). Key format: <code>user:profile:{userId}</code>. I wouldn't use write-through here because profile writes are infrequent — write-through wastes resources caching data that may never be re-read.
+</div>
+
+<h2>Topic 4: Database Scaling</h2>
+
+<h3>Core Concepts</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>Read Replicas:</strong> Primary handles writes. Replicas handle reads. Replication lag means reads might be slightly stale. Good for read-heavy workloads (80%+ reads is common). Route reports, analytics, non-critical reads to replicas.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Database Sharding:</strong> Horizontal partitioning across multiple DB instances. Each shard holds a subset of data. Shard key determines which shard a record goes to. Enables horizontal scaling of writes. Downsides: cross-shard joins are expensive/impossible, re-sharding is painful, application complexity increases significantly.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Sharding Strategies:</strong> Range sharding (e.g., users A–M on shard 1, N–Z on shard 2) — simple but hotspots possible. Hash sharding (hash(userId) % N) — even distribution but no range queries. Directory/lookup sharding — flexible but lookup table is a bottleneck. Geographic sharding — data in same region as users.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>CQRS (Command Query Responsibility Segregation):</strong> Separate models (and often stores) for reads and writes. Write side has normalized schema. Read side has denormalized, query-optimized projections. Eliminates read/write contention. Complex to implement. Often combined with Event Sourcing.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Connection Pooling:</strong> DB connections are expensive to create. Pool maintains a fixed set of open connections reused across requests. Prevents "too many connections" errors. PgBouncer for PostgreSQL. Mongoose handles pooling for MongoDB. Configure pool size based on DB max_connections and concurrent requests.</li>
+<li><span class="bonus">[BONUS]</span> Vitess (MySQL sharding), CockroachDB (distributed SQL), NewSQL databases.</li>
+</ul>
+
+<div class="box-q">Q: Our read-heavy API is slow because the DB is overloaded. Walk me through how you'd scale it.</div>
+<div class="box-a">
+<strong>Answer:</strong> I'd scale in layers, each buying significant relief before the next:<br>
+1. <strong>Query optimization first</strong> — Add missing indexes, fix N+1 queries, optimize slow queries (EXPLAIN). This often gives 10x improvement with zero infrastructure change.<br>
+2. <strong>Application-level caching</strong> — Add Redis cache-aside for frequently read, rarely changed data (user profiles, config, product catalog). Aim for 80%+ cache hit rate.<br>
+3. <strong>Read replicas</strong> — Spin up 1–2 replicas, route all read-only queries there. Writes still go to primary. This doubles effective read capacity immediately.<br>
+4. <strong>Connection pooling</strong> — If not already using PgBouncer or equivalent, add it. Prevents connection storms.<br>
+5. <strong>Sharding</strong> — Only if the above don't suffice. Pick a shard key that distributes evenly and matches your primary access patterns. This is a last resort due to operational complexity.<br>
+I'd always measure first: is the bottleneck CPU, I/O, locks, or network? The fix depends on the bottleneck.
+</div>
+
+<h2>Topic 5: Message Queues &amp; Async Processing</h2>
+
+<h3>Core Concepts</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>Why queues?</strong> Decoupling (producer/consumer can evolve independently), buffering (absorb traffic spikes), async processing (don't block user on slow operations like email sending, PDF generation, video processing), reliability (if consumer is down, messages wait).</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Delivery Guarantees:</strong>
+  <ul>
+  <li>At-most-once: fire and forget. Fast but messages can be lost. Use for analytics, metrics.</li>
+  <li>At-least-once: messages redelivered if not acknowledged. Consumer must be idempotent. Use for emails, payments, notifications.</li>
+  <li>Exactly-once: hardest. Requires idempotent producers + transactional consumers. Kafka Transactions support this.</li>
+  </ul>
+</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Kafka vs RabbitMQ:</strong> Kafka is a distributed event log — designed for high throughput, replay, event sourcing, stream processing. Messages persist. Multiple consumer groups can read the same topic. RabbitMQ is a traditional message broker — designed for task queues, routing, dead-letter queues. Messages deleted after consumption. Choose Kafka when you need replay or high throughput (&gt;100k msg/sec). Choose RabbitMQ for complex routing, lower latency, lower volume.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Dead Letter Queue (DLQ):</strong> Where failed/unprocessable messages go after max retries. Essential for production systems. Allows investigation without blocking the main queue.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Idempotency:</strong> Processing the same message twice gives the same result as processing it once. Required for at-least-once delivery. Implement via idempotency keys, checking if work is already done before doing it.</li>
+<li><span class="bonus">[BONUS]</span> Kafka internals: partitions, consumer groups, offset management, partition leadership election (Raft-based in KRaft mode).</li>
+</ul>
+
+<div class="box-q">Q: When would you NOT use a message queue?</div>
+<div class="box-a">
+<strong>Answer:</strong> Queues add complexity — another service to operate, monitor, scale, and handle failures for. Avoid them when: (1) The operation is fast enough to do synchronously without impacting UX — don't queue a DB write that takes 5ms. (2) You need the result immediately to respond to the user — queues are for fire-and-forget or async flows. (3) Your volume is low and a cron job or in-process background job would suffice. (4) You don't have the operational maturity to run Kafka reliably — a simpler tool (Bull queue with Redis, pg-boss with PostgreSQL) may be better. Over-engineering with Kafka when BullMQ would do is a common mistake I've seen in small teams.
+</div>
+
+<h2>Topic 6: Rate Limiting</h2>
+
+<h3>Algorithms</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>Token Bucket:</strong> Bucket holds up to N tokens. Tokens refill at a fixed rate (R per second). Each request consumes 1 token. If bucket is empty, request is rejected. Allows bursting up to N. Most flexible algorithm. Redis INCR + TTL or Lua scripts implement this efficiently.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Leaky Bucket:</strong> Requests enter a queue (bucket). Queue drains at a fixed rate. Excess requests overflow (rejected). Produces smooth output rate. No bursting allowed. Good for downstream services that can't handle bursts.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Fixed Window Counter:</strong> Count requests per time window (e.g., per minute). Simple but has boundary spike problem — 100 requests at end of window 1 + 100 requests at start of window 2 = 200 requests in 2-second span.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Sliding Window Log:</strong> Store timestamp of each request. Count requests in last N seconds. Precise but memory-intensive (stores every request timestamp).</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Sliding Window Counter:</strong> Hybrid — combines fixed window counters with weighting. Approximates sliding window. Low memory, close to sliding window accuracy. Redis sorted sets implement this well.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Distributed Rate Limiting:</strong> Single Redis instance as shared counter. All API gateway nodes read/increment the same counter. Lua scripts for atomic check-and-increment. Watch out for Redis latency adding to API response time.</li>
+</ul>
+
+<div class="box-q">Q: Design a rate limiter for an API that allows 100 requests per user per minute. How does it work at scale with multiple API servers?</div>
+<div class="box-a">
+<strong>Answer:</strong> I'd use a sliding window counter backed by Redis.<br>
+<strong>Data structure:</strong> Redis sorted set per user — key: <code>rate:userId</code>, score: timestamp in milliseconds, member: unique request ID.<br>
+<strong>Algorithm on each request:</strong><br>
+1. Remove entries older than 60 seconds: <code>ZREMRANGEBYSCORE rate:userId 0 (now-60000)</code><br>
+2. Count current entries: <code>ZCARD rate:userId</code><br>
+3. If count &gt;= 100: reject with 429 Too Many Requests, include <code>Retry-After</code> header<br>
+4. Otherwise: add entry <code>ZADD rate:userId now requestId</code> and set TTL: <code>EXPIRE rate:userId 60</code><br>
+5. Steps 1–4 wrapped in a Lua script for atomicity<br>
+<strong>At scale:</strong> All API servers point to the same Redis cluster. Redis handles the distributed counting. If Redis becomes a bottleneck, consider Redis Cluster with user sharding. Rate limits are per-user, so consistent hashing on userId distributes load evenly across Redis nodes.<br>
+<strong>Trade-offs:</strong> Redis adds ~1ms latency per request. For extreme scale, local approximate counters with periodic Redis sync reduce Redis load at the cost of some accuracy.
+</div>
+
+<h2>Topic 7: API Gateway &amp; Reverse Proxy</h2>
+<p><em>This maps directly to your Go project — own this topic completely.</em></p>
+
+<h3>Core Concepts</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>Reverse Proxy vs Forward Proxy:</strong> Forward proxy sits in front of clients (VPN, corporate proxy — clients use it to reach internet). Reverse proxy sits in front of servers (clients think they're talking to a single server, actually routing to multiple backends). Nginx, HAProxy, Envoy are reverse proxies.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>API Gateway = Reverse Proxy + API management features:</strong> Rate limiting, auth (JWT verification, API keys), request/response transformation, logging, tracing, circuit breaking, load balancing, SSL termination, protocol translation.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Request Lifecycle through a Gateway:</strong> Client sends request → DNS resolution → TLS handshake → Gateway receives → Auth middleware (validate JWT/API key) → Rate limit check → Route matching → Request transformation → Forward to upstream service → Receive response → Response transformation → Return to client. Logging + tracing at each step.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Circuit Breaker Pattern:</strong> Prevent cascading failures. States: Closed (normal), Open (stop sending, return fast failure), Half-Open (test if service recovered). Thresholds: failure rate % or consecutive failures. Libraries: resilience4j (Java), Hystrix (deprecated), polly (.NET), your own in Go.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>SSL Termination at Gateway:</strong> HTTPS from client to gateway. HTTP or internal HTTPS between gateway and services. Reduces TLS overhead on backend services. Certificates managed at gateway only.</li>
+<li><span class="bonus">[BONUS]</span> Service mesh (Istio, Linkerd) — moves gateway concerns (auth, rate limiting, tracing) into a sidecar proxy next to each service. Removes language-specific library dependencies.</li>
+</ul>
+
+<div class="box-q">Q: Walk me through the request lifecycle in your reverse proxy. What design decisions did you make and why?</div>
+<div class="box-a">
+<strong>Answer Framework (adapt to your actual implementation):</strong><br>
+"A request comes in over HTTP/HTTPS. The first thing my proxy does is [TLS termination / raw TCP accept]. It then parses the request headers to determine routing — I use [config-file-based routing / path prefix matching].<br>
+My middleware chain processes in order: (1) Request logging — log method, path, client IP, timestamp. (2) Auth middleware — extract and verify JWT, attach user context using Go's context package. (3) Rate limiter — I implemented a token bucket backed by [in-memory map / Redis]. Key decision: I chose token bucket over leaky bucket because it allows short bursts while still enforcing average limits. (4) Route matching — longest prefix wins. (5) Upstream forwarding — I use Go's <code>httputil.ReverseProxy</code> as the base with custom error handling. I set reasonable timeouts (dial: 5s, response header: 10s, total: 30s) to prevent slow upstream services from exhausting goroutines.<br>
+Key invariant I maintain: if auth fails, rate limiter is never even reached (fail fast). If upstream is unavailable, I return a structured JSON error with a 502. I don't expose upstream error details to the client — that's an important security boundary.<br>
+Trade-off I made: I chose simplicity over maximum performance. Using httputil.ReverseProxy means I'm not doing zero-copy streaming, but it's much easier to maintain. For a production system at scale, I'd consider a lower-level implementation."
+</div>
+
+<h2>Topic 8: Authentication at Scale</h2>
+
+<h3>Core Concepts</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>JWT (JSON Web Token):</strong> header.payload.signature. Header: algorithm (RS256, HS256). Payload: claims (sub, exp, iat, custom). Signature: HMAC-SHA256 or RSA-SHA256. Stateless — server needs only the secret/public key to verify. No DB lookup per request. Downside: can't revoke before expiry without a denylist.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Access + Refresh Token Pattern:</strong> Short-lived access token (15 min) — sent with every request, stored in memory (never localStorage). Long-lived refresh token (7–30 days) — stored in httpOnly cookie, used only to get new access tokens. On access token expiry, use refresh token to get a new pair. On logout, invalidate refresh token in DB.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>OAuth2 Flows:</strong>
+  <ul>
+  <li>Authorization Code + PKCE: web apps, mobile apps. User-facing login. Most secure.</li>
+  <li>Client Credentials: service-to-service, no user involved. Machine auth.</li>
+  <li>Implicit: deprecated. Don't use.</li>
+  <li>Device Code: TV/CLI apps where no browser redirect is possible.</li>
+  </ul>
+</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Token Storage:</strong> Access tokens: in-memory (JS variable) — XSS can't steal, tab refresh loses it. Refresh tokens: httpOnly + Secure + SameSite=Strict cookie — not accessible to JS, sent only over HTTPS, CSRF-resistant. Never localStorage for tokens.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Refresh Token Rotation:</strong> Each use of a refresh token issues a new refresh token and invalidates the old one. If a stolen refresh token is used, the legitimate user's next refresh will fail (old token already invalidated), signaling a breach. Invalidate the entire token family (all refresh tokens for that user/session).</li>
+<li><span class="bonus">[BONUS]</span> PASETO (Platform-Agnostic Security Tokens) as a safer alternative to JWT. OpenID Connect (OIDC) as identity layer on top of OAuth2.</li>
+</ul>
+
+<div class="box-q">Q: JWT vs Session tokens — when would you choose each?</div>
+<div class="box-a">
+<strong>Answer:</strong> Sessions (server-side, stored in Redis/DB): easy revocation (delete session record), flexible payload updates, small cookie, but requires shared session store across servers — adds latency and operational complexity. JWT: stateless verification, no shared store, good for microservices (each service verifies independently), but can't revoke a valid token before expiry without a denylist (which brings back the shared store problem).<br>
+<strong>My decision rule:</strong> Use JWTs for service-to-service auth and scenarios where revocation isn't critical or access tokens are short-lived (&lt;15 min). Use sessions for user-facing auth where you need immediate revocation (admin banning a user, forced logout). In practice, many systems use a hybrid: JWT access tokens (short-lived, stateless) + database-tracked refresh tokens (long-lived, revocable). This gives stateless performance with revocation capability.
+</div>
+
+<div class="page-break"></div>
+
+<h2>System Design Practice Problems</h2>
+<p>For each problem: attempt solo first (15–20 min), then study the framework. Use the 5-step framework every time.</p>
+
+<h3>Problem 1: Design a URL Shortener (bit.ly)</h3>
+<div class="box-depth">
+<strong>Requirements to clarify:</strong> How many URLs shortened/day? Read vs write ratio? Custom aliases? Analytics needed? URL expiry?<br>
+<strong>Estimates (100M URLs/day):</strong> 100M URLs/day = ~1,200 writes/sec. Read:Write = 100:1 = 120,000 reads/sec. Storage: 100M × 500 bytes = 50 GB/day.
+</div>
+<ul>
+<li><strong>Core Flow:</strong> User submits long URL → generate 7-char alphanumeric code (base62: 62^7 = 3.5 trillion unique codes) → store mapping in DB → return short URL. On redirect: lookup code → return 301/302 redirect.</li>
+<li><strong>301 vs 302:</strong> 301 (permanent) — browser caches, reduces server load but can't track subsequent clicks. 302 (temporary) — server always hit, allows analytics. Choose based on whether analytics matter.</li>
+<li><strong>Hash generation:</strong> MD5/SHA256 → take first 7 chars → collision risk → check DB → regenerate. Or: use a distributed ID generator (Snowflake IDs) → encode as base62. Or: counter in DB + base62 encoding (simple but counter is a bottleneck).</li>
+<li><strong>DB choice:</strong> Key-value lookup — Redis for hot URLs (cache-aside). Cassandra/DynamoDB for the full mapping table (write-heavy, key-value access pattern fits perfectly). Or PostgreSQL for smaller scale.</li>
+<li><strong>Scaling:</strong> Cache-aside with Redis (top 20% of URLs are 80% of traffic — Pareto). Multiple read replicas. CDN for geographic distribution.</li>
+<li><strong>Bottleneck:</strong> Write path at extreme scale. Solution: async writes with a queue, accept eventual consistency on analytics.</li>
+</ul>
+
+<h3>Problem 2: Design a Rate Limiter Service</h3>
+<p>(See Topic 6 above — you already have the answer. Now design it as a standalone service.)</p>
+<ul>
+<li><strong>As a standalone service:</strong> API servers call rate limiter service before processing. Adds ~1–2ms latency. Rate limiter uses Redis cluster for distributed counters.</li>
+<li><strong>Config:</strong> Rules stored in DB/config (userId → limit, apiKey → limit, IP → limit, endpoint → limit). Rules cached in rate limiter service memory, refreshed every 30s.</li>
+<li><strong>Headers to return:</strong> <code>X-RateLimit-Limit: 100</code>, <code>X-RateLimit-Remaining: 45</code>, <code>X-RateLimit-Reset: 1720000000</code>, <code>Retry-After: 30</code>.</li>
+<li><strong>Failure mode:</strong> If rate limiter service is unavailable — fail open (allow traffic) or fail closed (block traffic). Fail open is usually correct to avoid taking down the entire API.</li>
+</ul>
+
+<h3>Problem 3: Design a Notification System</h3>
+<ul>
+<li><strong>Channels:</strong> Push (APNs/FCM), Email (SES/SendGrid), SMS (Twilio), In-app (WebSocket/SSE).</li>
+<li><strong>Core Flow:</strong> Event triggers notification → Notification Service creates notification record → routes to channel-specific workers via message queue → workers call third-party APIs → update delivery status.</li>
+<li><strong>Queue per channel:</strong> Each channel has own queue. Email queue slow (rate limited by provider) doesn't block push notifications.</li>
+<li><strong>Retry logic:</strong> Exponential backoff. After max retries → DLQ → alert ops team.</li>
+<li><strong>User preferences:</strong> DB table: userId, channel, enabled, frequency_limit (max 5 emails/day). Check before enqueuing.</li>
+<li><strong>Deduplication:</strong> Idempotency key on notification. If same event triggers multiple notifications, deduplicate by event_id.</li>
+<li><strong>Template service:</strong> Separate service renders notification content. Parameterized templates. Localization.</li>
+</ul>
+
+<h3>Problem 4: Design a File Upload Service (like S3)</h3>
+<ul>
+<li><strong>Flow:</strong> Client requests presigned upload URL from API → API generates presigned S3 URL (15 min expiry) → Client uploads directly to S3 (bypass your servers) → S3 triggers event on upload complete → your service updates DB record with file metadata.</li>
+<li><strong>Why presigned URLs:</strong> Upload doesn't go through your servers — saves bandwidth, CPU, eliminates single point of failure for upload path.</li>
+<li><strong>Large files (multipart upload):</strong> Split into 5MB+ parts. Upload parts in parallel. S3 completes multipart upload. Resume interrupted uploads by tracking uploaded parts.</li>
+<li><strong>Security:</strong> Validate file type (MIME, magic bytes — not just extension). Scan for malware (ClamAV or AWS GuardDuty). Store in private S3, serve via signed URLs with short expiry. Never serve user-uploaded files from your API domain (XSS risk).</li>
+<li><strong>Metadata DB:</strong> fileId, userId, originalName, s3Key, contentType, size, uploadStatus (pending/complete/failed), createdAt.</li>
+</ul>
+
+<h3>Problem 5: Design a Real-Time Chat Application</h3>
+<ul>
+<li><strong>Real-time transport:</strong> WebSockets — full-duplex, low latency. SSE — server push only, simpler for one-directional. Long polling — fallback. For chat: WebSockets.</li>
+<li><strong>Architecture:</strong> Chat servers maintain WebSocket connections. Problem: user A is on server 1, user B is on server 2. How does A's message reach B?</li>
+<li><strong>Solution — Pub/Sub:</strong> Each user subscribes to their own channel in Redis Pub/Sub (or Kafka). When A sends a message: save to DB + publish to B's channel. All chat servers subscribe to all channels. B's server receives from Redis and pushes to B's WebSocket.</li>
+<li><strong>Message storage:</strong> Cassandra (time-series access pattern, high write throughput) with partition key = conversationId, clustering key = timestamp.</li>
+<li><strong>Presence system:</strong> Heartbeat every 5s. Store last_seen in Redis (sorted set by timestamp). "Online" = last_seen within 10s.</li>
+<li><strong>Message ordering:</strong> Logical timestamps or Lamport clocks. Don't rely on server timestamps (clock skew).</li>
+</ul>
+
+<div class="page-break"></div>
+
+<h2>System Design Cheat Sheet — Quick Reference</h2>
+<table>
+<tr><th>Scenario</th><th>Solution</th><th>Key Trade-off</th></tr>
+<tr><td>Read-heavy system slow</td><td>Redis cache + read replicas</td><td>Stale data possible</td></tr>
+<tr><td>Write-heavy system slow</td><td>Queue writes + batch processing</td><td>Eventual consistency</td></tr>
+<tr><td>Need real-time updates</td><td>WebSockets (bidirectional) or SSE (server push)</td><td>Connection overhead</td></tr>
+<tr><td>Large file uploads</td><td>Presigned S3 URLs + multipart</td><td>Client must handle resume</td></tr>
+<tr><td>API protection</td><td>Rate limiter (token bucket) + auth at gateway</td><td>Redis latency</td></tr>
+<tr><td>Service communication</td><td>REST (sync) or Message Queue (async)</td><td>Async = no immediate result</td></tr>
+<tr><td>Database overloaded</td><td>Index → Cache → Replicas → Shard</td><td>Complexity grows at each step</td></tr>
+<tr><td>Single point of failure</td><td>Load balancer + multiple instances</td><td>State management complexity</td></tr>
+<tr><td>Service A bringing down service B</td><td>Circuit breaker + bulkheads + timeouts</td><td>False positives block good traffic</td></tr>
+<tr><td>Global users, high latency</td><td>CDN for static, geographic DB replicas for dynamic</td><td>Consistency across regions</td></tr>
+<tr><td>Microservices coordination</td><td>Event-driven (Kafka) + saga pattern</td><td>Complex rollback logic</td></tr>
+<tr><td>Unique ID generation at scale</td><td>Snowflake IDs (Twitter) or UUID v7</td><td>Snowflake needs centralized worker IDs</td></tr>
+</table>
+
+<h2>Numbers Every Engineer Should Know</h2>
+<table>
+<tr><th>Operation</th><th>Latency</th><th>Why It Matters</th></tr>
+<tr><td>L1 cache reference</td><td>~0.5 ns</td><td>Baseline for comparisons</td></tr>
+<tr><td>L2 cache reference</td><td>~7 ns</td><td>—</td></tr>
+<tr><td>RAM read</td><td>~100 ns</td><td>200x slower than L1</td></tr>
+<tr><td>SSD random read</td><td>~100 µs (0.1 ms)</td><td>1,000x slower than RAM</td></tr>
+<tr><td>HDD random read</td><td>~10 ms</td><td>100x slower than SSD</td></tr>
+<tr><td>Network same datacenter</td><td>~0.5 ms</td><td>Inter-service calls add up</td></tr>
+<tr><td>Network cross-region (US→EU)</td><td>~75 ms</td><td>Why geographic distribution matters</td></tr>
+<tr><td>Redis GET</td><td>~0.1–0.5 ms</td><td>Cache is worth it vs DB</td></tr>
+<tr><td>PostgreSQL simple query (indexed)</td><td>~1–5 ms</td><td>With cache: avoid this 80% of time</td></tr>
+<tr><td>PostgreSQL complex query</td><td>~10–100 ms</td><td>Optimize or cache</td></tr>
+</table>
+
+<div class="box-tip">
+<strong>Estimation Quick Math:</strong><br>
+1 million req/day = ~12 req/sec (1M / 86,400 ≈ 12). &nbsp;|&nbsp; 1 billion req/day = ~12,000 req/sec<br>
+1 KB × 1M users = 1 GB &nbsp;|&nbsp; 1 KB × 1B users = 1 TB<br>
+1 character = 1 byte (ASCII) &nbsp;|&nbsp; 40 chars = 40 bytes<br>
+1 image (web-optimized) ≈ 200 KB &nbsp;|&nbsp; 1 video (1 min, 720p) ≈ 50 MB
+</div>
+
+</body>
+</html>

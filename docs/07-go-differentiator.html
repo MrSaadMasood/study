@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>P7 — Go &amp; Your Reverse Proxy (Differentiator)</title>
+<style>
+body{font-family:Arial,sans-serif;margin:48px;color:#1a1a1a;line-height:1.7;}
+h1{font-size:22pt;color:#0d1b2a;border-bottom:3px solid #0d1b2a;padding-bottom:8px;}
+h2{font-size:16pt;color:#1b2838;border-bottom:2px solid #00695c;padding-bottom:4px;margin-top:36px;}
+h3{font-size:13pt;color:#1b2838;margin-top:24px;}
+h4{font-size:11pt;color:#37474f;margin-top:16px;}
+table{border-collapse:collapse;width:100%;margin:16px 0;font-size:10pt;}
+th{background:#0d1b2a;color:#fff;padding:10px 8px;text-align:left;}
+td{border:1px solid #ccc;padding:8px;vertical-align:top;}
+tr:nth-child(even) td{background:#f8f9fa;}
+.must{color:#1b5e20;font-weight:bold;}
+.should{color:#bf360c;font-weight:bold;}
+.bonus{color:#880e4f;font-weight:bold;}
+.box-q{background:#fff8e1;border-left:4px solid #f9a825;padding:10px 14px;margin:10px 0;font-weight:bold;}
+.box-a{background:#e8f5e9;border-left:4px solid #43a047;padding:10px 14px;margin:4px 0 20px 0;}
+.box-key{background:#e0f2f1;border-left:4px solid #00897b;padding:10px 14px;margin:10px 0;}
+.box-depth{background:#e3f2fd;border-left:4px solid #1976d2;padding:10px 14px;margin:10px 0;}
+code{background:#f5f5f5;padding:2px 5px;border-radius:3px;font-family:'Courier New',monospace;font-size:9.5pt;}
+pre{background:#1a1a2e;color:#e0e0e0;padding:14px;border-radius:5px;font-size:9pt;white-space:pre-wrap;word-break:break-word;}
+ul,ol{margin:6px 0;padding-left:22px;}
+li{margin-bottom:4px;}
+.page-break{page-break-before:always;border-top:2px solid #0d1b2a;margin-top:60px;padding-top:20px;}
+</style>
+</head>
+<body>
+
+<h1>Priority 7 — Go &amp; Your Reverse Proxy (Differentiator)</h1>
+<p><strong>Purpose:</strong> This is your competitive edge in international interviews. You don't need Go expertise — you need a compelling project narrative backed by genuine technical decisions. This section prepares you to talk about your proxy project at any depth required.</p>
+
+<div class="box-key">
+<strong>The Golden Rule:</strong> Never mention your Go project unless you can speak to it for 10–15 minutes straight. If you put it on your resume, every interviewer will drill it. Prepare the following: the full request lifecycle, 3+ specific technical decisions you made (and why), what trade-offs you consciously accepted, what you'd do differently, and how it scales.
+</div>
+
+<h2>Part 1: Go Language Essentials for Interviews</h2>
+<p>You don't need Go mastery. You need enough to credibly own the project and answer language questions that come from it.</p>
+
+<h3>Goroutines and Channels</h3>
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>Goroutine:</strong> Lightweight concurrent function — not an OS thread. Go runtime multiplexes thousands of goroutines onto a small number of OS threads. Create with <code>go func()</code>. Goroutines start with ~2–8KB stack (vs OS thread's 1MB+) — you can run millions concurrently without exhausting memory.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Channel:</strong> Typed conduit for communicating between goroutines. Buffered vs unbuffered. Send: <code>ch &lt;- value</code>. Receive: <code>value := &lt;-ch</code>. Unbuffered: sender blocks until receiver is ready (synchronization point). Buffered: sender only blocks when buffer is full.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>select statement:</strong> Like switch for channels — waits for the first ready channel. Used for timeouts, cancellation, multiplexing multiple channels.</li>
+</ul>
+
+<pre>
+// Worker pool pattern — essential for a proxy's request handling
+func workerPool(jobs &lt;-chan Job, results chan&lt;- Result, numWorkers int) {
+    var wg sync.WaitGroup
+    for i := 0; i &lt; numWorkers; i++ {
+        wg.Add(1)
+        go func() {
+            defer wg.Done()
+            for job := range jobs { // range on channel — exits when channel closed
+                results &lt;- processJob(job)
+            }
+        }()
+    }
+    go func() {
+        wg.Wait()
+        close(results)
+    }()
+}
+
+// Context propagation — critical for cancellation in proxy
+func forwardRequest(ctx context.Context, req *http.Request, upstream string) (*http.Response, error) {
+    outReq, err := http.NewRequestWithContext(ctx, req.Method, upstream+req.URL.Path, req.Body)
+    if err != nil {
+        return nil, err
+    }
+    // Copy headers
+    for k, v := range req.Header {
+        outReq.Header[k] = v
+    }
+    client := &http.Client{Timeout: 30 * time.Second}
+    return client.Do(outReq)
+}
+
+// select for timeout + cancellation
+func doWithTimeout(ctx context.Context, work func() error) error {
+    done := make(chan error, 1)
+    go func() { done &lt;- work() }()
+    select {
+    case err := &lt;-done:
+        return err
+    case &lt;-ctx.Done():
+        return ctx.Err() // context cancelled or deadline exceeded
+    }
+}
+</pre>
+
+<ul>
+<li><span class="must">[MUST KNOW]</span> <strong>sync.Mutex vs channel:</strong> Mutex for protecting shared state (counter, map). Channel for communication between goroutines and signaling. Rule of thumb: "use channels to share memory by communicating" — but mutex is fine for simple shared state protection.</li>
+<li><span class="must">[MUST KNOW]</span> <strong>Context package:</strong> Carries deadlines, cancellation signals, and request-scoped values across API boundaries. <code>context.WithTimeout(parent, duration)</code>, <code>context.WithCancel(parent)</code>. Always propagate context through your call chain. Essential in a proxy — if client disconnects, cancel the upstream request to avoid wasting resources.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>sync.WaitGroup:</strong> Wait for a collection of goroutines to finish. <code>wg.Add(n)</code>, <code>wg.Done()</code> in goroutine, <code>wg.Wait()</code> to block until all done. Used in graceful shutdown: wait for in-flight requests before stopping.</li>
+<li><span class="should">[SHOULD KNOW]</span> <strong>Data races:</strong> Concurrent access to shared memory without synchronization. <code>go test -race</code> flag detects them. Common in proxy when multiple goroutines read/write a shared map (route table, rate limit counters). Fix with sync.RWMutex (multiple concurrent readers, exclusive write) or sync.Map.</li>
+</ul>
+
+<h3>Go HTTP Server Internals</h3>
+<pre>
+// How net/http handles requests:
+// Each incoming request gets its own goroutine — Go's HTTP server is inherently concurrent
+// Your handler runs in a goroutine per request
+
+// Middleware pattern in Go (same concept as Express, different syntax)
+type Middleware func(http.Handler) http.Handler
+
+func Logger(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        start := time.Now()
+        // Wrap ResponseWriter to capture status code
+        wrapped := &responseWriter{ResponseWriter: w, statusCode: 200}
+        next.ServeHTTP(wrapped, r)
+        log.Printf("%s %s %d %v", r.Method, r.URL.Path, wrapped.statusCode, time.Since(start))
+    })
+}
+
+func AuthMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        token := r.Header.Get("Authorization")
+        if !strings.HasPrefix(token, "Bearer ") {
+            http.Error(w, "Unauthorized", http.StatusUnauthorized)
+            return
+        }
+        // Validate JWT...
+        next.ServeHTTP(w, r)
+    })
+}
+
+// Chaining middleware
+handler := Logger(AuthMiddleware(RateLimiter(router)))
+
+// httputil.ReverseProxy — the standard library reverse proxy
+proxy := &httputil.ReverseProxy{
+    Director: func(req *http.Request) {
+        req.URL.Scheme = "http"
+        req.URL.Host = upstream
+        req.Header.Set("X-Forwarded-For", req.RemoteAddr)
+        req.Header.Set("X-Forwarded-Host", req.Host)
+    },
+    ModifyResponse: func(resp *http.Response) error {
+        // Post-process upstream response
+        resp.Header.Set("X-Proxy-Version", "1.0")
+        return nil
+    },
+    ErrorHandler: func(w http.ResponseWriter, r *http.Request, err error) {
+        log.Printf("Upstream error: %v", err)
+        http.Error(w, "Bad Gateway", http.StatusBadGateway)
+    },
+}
+</pre>
+
+<h2>Part 2: Your Reverse Proxy — Interview Narrative</h2>
+<p>This is the script you should practice until it flows naturally. Customize with your actual implementation details.</p>
+
+<h3>The 10-Minute Project Walkthrough</h3>
+<div class="box-key">
+<strong>"Walk me through your reverse proxy project."</strong><br>
+Structure your answer in 4 parts: (1) Why I built it, (2) Architecture overview, (3) Two or three deep technical decisions, (4) What I'd add next.
+</div>
+
+<div class="box-q">Q: Tell me about your Go reverse proxy project.</div>
+<div class="box-a">
+<strong>Part 1 — Why:</strong> "I built this as a learning project to deeply understand what happens at the infrastructure layer between clients and backend services — the kind of thing I was using (Nginx, Kong, AWS API Gateway) but didn't deeply understand. The goal was to build a minimal but production-correct reverse proxy that handles the core concerns of any API gateway: routing, auth, rate limiting, and observability."<br><br>
+<strong>Part 2 — Architecture:</strong> "The proxy listens on a configurable port. Every incoming HTTP request flows through a middleware chain I implemented: first request logging (captures method, path, latency), then auth verification (validates JWT, attaches user context via Go's context package), then rate limiting (token bucket per user IP or API key), then route matching (longest prefix match against a config file), and finally upstream forwarding using Go's httputil.ReverseProxy. Responses come back through a response modification step where I add observability headers."<br><br>
+<strong>Part 3 — Technical Decisions:</strong> [See below — pick 2–3 that are true for your project]<br><br>
+<strong>Part 4 — What's next:</strong> "I want to add circuit breaker logic — currently if an upstream is slow, it holds goroutines open. I'd implement a simple state machine: closed → open on N consecutive failures → half-open for recovery probing. I'd also add proper health checks and a metrics endpoint exposing Prometheus-compatible data."
+</div>
+
+<h3>5 Technical Decisions Worth Discussing</h3>
+<p>For each: know the decision, the alternatives you considered, and why you chose what you did.</p>
+
+<h4>Decision 1: Middleware Chain Design</h4>
+<div class="box-a">
+<strong>Decision:</strong> Implemented middleware as Go function wrappers (<code>func(http.Handler) http.Handler</code>) rather than a framework like Gin or Chi.<br>
+<strong>Why:</strong> Wanted to understand the underlying net/http request handling. The standard library pattern (Handler interface + HandlerFunc adapter) is clean and composable. Each middleware is independently testable — I can unit test the auth middleware by passing a mock next handler and verify it returns 401 for invalid tokens without touching any routing logic.<br>
+<strong>Trade-off:</strong> Less ergonomic than Gin — no path params extraction out of the box, no automatic JSON binding. For a production product, I'd use Chi (minimal, stdlib-compatible router). For this learning project, building it manually was the point.
+</div>
+
+<h4>Decision 2: Rate Limiting — In-Memory vs Redis-Backed</h4>
+<div class="box-a">
+<strong>Decision:</strong> Used an in-memory token bucket (sync.Map of [key → tokenBucket struct]) rather than Redis.<br>
+<strong>Why:</strong> For a single-instance proxy, in-memory is lower latency (~100ns vs ~1ms for Redis round-trip) and no external dependency. The bucket struct has a mutex for thread-safe access. I use sync.Mutex rather than sync.RWMutex because rate limit updates are nearly always writes.<br>
+<strong>Trade-off:</strong> Doesn't work correctly with multiple proxy instances — each instance has its own in-memory counter. If you run 3 proxy replicas, a user can make 3× the rate limit. For a distributed production deployment, you'd need Redis with Lua scripts for atomic check-and-decrement, or a dedicated rate limit service.<br>
+<strong>Invariant I maintain:</strong> The rate limiter middleware runs after auth — you can't exhaust rate limits without a valid API key. This prevents unauthenticated users from consuming rate limit counters.
+</div>
+
+<h4>Decision 3: Auth Boundary and JWT Verification</h4>
+<div class="box-a">
+<strong>Decision:</strong> The proxy verifies JWTs and only forwards the user's extracted claims (user ID, roles) to upstream services — never the raw JWT.<br>
+<strong>Why:</strong> This is an important security boundary. Upstream services should trust the proxy's assertion that "this is user 123 with role admin" rather than verify JWTs themselves. This means: (1) JWT verification logic lives in one place — the proxy. If the signing key changes, I update one service. (2) Upstream services are simpler — they just read an X-User-Id header. (3) Internal services don't need secret key material to verify tokens.<br>
+<strong>Trade-off:</strong> Creates a trust boundary — upstream services must fully trust the proxy. If the proxy is compromised, all services are compromised. For internal networks this is acceptable; for zero-trust architectures you'd verify tokens at each service too.
+</div>
+
+<h4>Decision 4: Connection Timeouts</h4>
+<div class="box-a">
+<strong>Decision:</strong> Set explicit timeouts at multiple levels: dial timeout (5s), response header timeout (10s), total request timeout (30s), and idle connection timeout.<br>
+<strong>Why:</strong> Without timeouts, a slow or hung upstream service holds a goroutine open indefinitely. Under load, this exhausts the goroutine pool. Each timeout layer catches different failure modes: dial timeout catches unreachable services, response header timeout catches services that accept the connection but never respond, total timeout catches services that start responding but are extremely slow.<br>
+<strong>Practical impact:</strong> With no timeouts, a 30-second upstream delay would occupy 30 goroutines per second of incoming traffic. With timeouts, those goroutines are freed after 30s maximum, preventing unbounded growth.
+</div>
+
+<h4>Decision 5: Graceful Shutdown</h4>
+<div class="box-a">
+<strong>Decision:</strong> Implemented graceful shutdown using Go's server.Shutdown() with a context timeout and signal handling.<br>
+<strong>Why:</strong> Hard stopping an HTTP server mid-request drops in-flight requests — users get connection reset errors. Graceful shutdown: (1) Stop accepting new connections immediately. (2) Wait for in-flight requests to complete (up to a timeout). (3) Then exit. This is essential for zero-downtime deployments in a containerized environment.<br>
+<strong>Implementation:</strong> Listen for SIGTERM and SIGINT signals in a goroutine. On signal: call server.Shutdown(ctx) with a 30s timeout. Existing requests complete; new requests get refused. After all requests finish (or timeout), process exits with code 0.
+</div>
+
+<h2>Part 3: Go vs Node.js — Be Ready to Compare</h2>
+
+<div class="box-q">Q: Why did you choose Go over Node.js for this project?</div>
+<div class="box-a">
+<strong>Answer:</strong> Node.js would have been more productive for a quick prototype — I know the ecosystem better. I chose Go specifically to learn its concurrency model, which is genuinely different from Node's async/await pattern. Go's approach (goroutines + channels + explicit context cancellation) is a better mental model for infrastructure code where you have many concurrent requests, need fine-grained timeout control, and want the compiler to catch concurrency issues at compile time through type safety.<br>
+For a production reverse proxy, Go is also the right tool: lower memory per connection (goroutine vs V8 + Node event loop overhead), single static binary deployment (no npm, no node_modules), and the standard library's net/http is production-quality. Nginx, Envoy, Caddy, and Traefik are all written in Go/C for these reasons.<br>
+That said, for an API service with business logic, database calls, and complex data transformations, Node.js + TypeScript is fully competitive and I'd be comfortable choosing either based on team expertise.
+</div>
+
+<h2>Quick Go Syntax Reference (For Interview Whiteboarding)</h2>
+<pre>
+// Key patterns you might be asked to sketch:
+
+// Goroutine + channel
+ch := make(chan int, 10) // buffered channel, capacity 10
+go func() { ch &lt;- computeValue() }()
+result := &lt;-ch
+
+// Defer (cleanup guaranteed even on panic/early return)
+func readFile(path string) ([]byte, error) {
+    f, err := os.Open(path)
+    if err != nil { return nil, err }
+    defer f.Close() // runs when function returns, regardless of how
+    return io.ReadAll(f)
+}
+
+// Error handling (Go's pattern — no exceptions)
+result, err := doSomething()
+if err != nil {
+    return fmt.Errorf("doSomething failed: %w", err) // %w wraps for errors.Is()
+}
+
+// Interfaces (implicit implementation — no "implements" keyword)
+type Handler interface { ServeHTTP(http.ResponseWriter, *http.Request) }
+// Any type with ServeHTTP method automatically implements Handler
+
+// struct + methods
+type RateLimiter struct {
+    mu      sync.Mutex
+    buckets map[string]*tokenBucket
+    rate    float64
+    burst   int
+}
+
+func (rl *RateLimiter) Allow(key string) bool {
+    rl.mu.Lock()
+    defer rl.mu.Unlock()
+    b, ok := rl.buckets[key]
+    if !ok {
+        b = newBucket(rl.rate, rl.burst)
+        rl.buckets[key] = b
+    }
+    return b.consume(1)
+}
+</pre>
+
+<h2>The "Why Go for Distributed Systems" Talking Points</h2>
+<ul>
+<li><strong>Goroutines are cheap:</strong> You can have 100,000+ goroutines in a single process. OS threads (what Node.js worker threads map to) are limited to thousands. This makes Go natural for proxies and gateways that need to maintain many concurrent connections.</li>
+<li><strong>Built-in race detector:</strong> <code>go test -race</code> and <code>go run -race</code> detect data races at runtime. Critical for concurrent programs.</li>
+<li><strong>Static binary:</strong> Compile to a single binary with all dependencies bundled. No runtime dependency management. Docker images are small. Startup is instant.</li>
+<li><strong>Standard library:</strong> net/http, crypto/tls, encoding/json — all production-quality and part of the stdlib. Nginx + a Go HTTP server have comparable throughput.</li>
+<li><strong>Explicit error handling:</strong> No hidden exceptions. Every function that can fail returns an error. You're forced to handle or propagate it. This is verbose but makes error paths explicit and auditable.</li>
+</ul>
+
+<div class="box-depth">
+<strong>Depth Stop for Go:</strong> You need enough to own your project narrative and answer "why Go" credibly. You do NOT need: deep Go runtime internals (GMP scheduler, garbage collector generations), cgo, unsafe package, reflection API. If asked about any of these, it's fine to say "I haven't needed to go that deep yet, but I know the concept is [brief answer]."
+</div>
+
+</body>
+</html>
