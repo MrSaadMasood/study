@@ -6,7 +6,7 @@ import {
   toggleSessionComplete,
 } from './hooks/useProgress';
 import { getSession, getWeek, WEEKS } from './data/weeks';
-import { resolveDocRef } from './data/localDocs';
+import { LOCAL_DOC_PATHS, resolveDocRef, withBaseUrl } from './data/localDocs';
 
 describe('schedule data', () => {
   it('has 8 weeks with 7 sessions each', () => {
@@ -39,15 +39,28 @@ describe('schedule data', () => {
     for (const week of WEEKS) {
       for (const session of week.sessions) {
         if (session.type === 'rest') continue;
-        const hasPrepDoc = session.resources.some((r) => r.url.startsWith('/docs/'));
+        const hasPrepDoc = session.resources.some((r) => r.url.includes('/docs/'));
         expect(hasPrepDoc, `${session.id} should link to a prep doc`).toBe(true);
       }
     }
   });
 
-  it('resolves doc refs to local paths', () => {
+  it('resolves doc refs to local paths under the app base URL', () => {
     const resolved = resolveDocRef('Doc 02 — Topic 1: Event Loop');
-    expect(resolved?.url).toBe('/docs/02-backend-nodejs.html');
+    expect(resolved?.url).toBe(LOCAL_DOC_PATHS.backend);
+    expect(resolved?.url).toBe(`${import.meta.env.BASE_URL}docs/02-backend-nodejs.html`);
+  });
+
+  it('prefixes local doc paths with the Vite base URL', () => {
+    expect(withBaseUrl('/docs/05-react-frontend.html')).toBe(
+      `${import.meta.env.BASE_URL}docs/05-react-frontend.html`,
+    );
+    expect(withBaseUrl('docs/05-react-frontend.html')).toBe(
+      `${import.meta.env.BASE_URL}docs/05-react-frontend.html`,
+    );
+    expect(withBaseUrl('https://example.com/docs/x.html')).toBe(
+      'https://example.com/docs/x.html',
+    );
   });
 });
 

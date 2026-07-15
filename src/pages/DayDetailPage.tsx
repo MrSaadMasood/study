@@ -1,14 +1,15 @@
 import { Navigate, useParams } from 'react-router-dom';
 import { getSession, getWeek } from '../data/weeks';
-import { resolveDocRef } from '../data/localDocs';
+import { resolveDocRef, withBaseUrl } from '../data/localDocs';
 import { BackLink, InfoBox, PriorityBadge, SessionTypeBadge } from '../components/ui';
 import { useProgressStore } from '../hooks/useProgressStore';
 
 function ResourceCard({ title, url, note }: { title: string; url: string; note?: string }) {
-  const isInternal = url.startsWith('/');
+  const href = withBaseUrl(url);
+  const isInternal = !/^https?:\/\//i.test(url);
   return (
     <a
-      href={url}
+      href={href}
       className="resource-card"
       target={isInternal ? '_self' : '_blank'}
       rel={isInternal ? undefined : 'noreferrer'}

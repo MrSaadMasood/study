@@ -53,7 +53,7 @@ export const week6Sessions: StudySession[] = [
     timeBreakdown: ['20 min refine', '25 min rehearse', '15 min top Q&A read'],
     resources: [
       prepDoc(LOCAL_DOC_PATHS.behavioral, 'Doc 06 — Top 20 Behavioral Questions'),
-      { title: 'Doc 06 — Tell Me About Yourself templates', url: '/docs/06-behavioral.html', note: 'In your behavioral doc' },
+      prepDoc(LOCAL_DOC_PATHS.behavioral, 'Doc 06 — Tell Me About Yourself templates', 'In your behavioral doc'),
       { title: 'STAR Method — MIT Career Handbook', url: 'https://capd.mit.edu/resources/the-star-method-for-behavioral-interviews/' },
       { title: 'Indeed — Why Are You Leaving Answer Guide', url: 'https://www.indeed.com/career-advice/interviewing/interview-question-why-are-you-looking-for-a-new-job', note: 'Common opener' },
     ],
@@ -83,7 +83,7 @@ export const week6Sessions: StudySession[] = [
       { title: 'Go by Example', url: 'https://gobyexample.com/', note: 'Syntax reference' },
       { title: 'Go Docs — net/http', url: 'https://pkg.go.dev/net/http' },
       { title: 'Go Docs — sync.Map', url: 'https://pkg.go.dev/sync#Map', note: 'Rate limiting patterns' },
-      { title: 'Doc 07 — Go vs Node.js Comparison', url: '/docs/07-go-differentiator.html', note: 'Comparison talking points' },
+      prepDoc(LOCAL_DOC_PATHS.go, 'Doc 07 — Go vs Node.js Comparison', 'Comparison talking points'),
     ],
   },
   {
@@ -399,7 +399,7 @@ export const week8Sessions: StudySession[] = [
     timeBreakdown: ['40 min stories', '10 min questions', '10 min tell me about yourself'],
     resources: [
       prepDoc(LOCAL_DOC_PATHS.behavioral, 'Doc 06 — Questions to Ask Interviewers'),
-      { title: 'Doc 06 — STAR Story Templates', url: '/docs/06-behavioral.html', note: 'All 5 stories' },
+      prepDoc(LOCAL_DOC_PATHS.behavioral, 'Doc 06 — STAR Story Templates', 'All 5 stories'),
       { title: 'STAR Method — MIT Career Handbook', url: 'https://capd.mit.edu/resources/the-star-method-for-behavioral-interviews/' },
       { title: 'The Muse — Questions to Ask Interviewer', url: 'https://www.themuse.com/advice/51-interview-questions-you-should-be-asking', note: 'Pick your top 3' },
     ],

@@ -18,7 +18,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173
+Open http://localhost:5173/study/
 
 ## Build
 
@@ -27,6 +27,6 @@ npm run build
 npm run preview
 ```
 
-## Original HTML docs
+## Prep HTML docs
 
-The original detailed reference documents (`01-system-design.html` through `07-go-differentiator.html`) remain in the parent folder. The app references their sections in each day's plan.
+The detailed reference documents live in `public/docs/` (`00-master-schedule.html` through `07-go-differentiator.html`). Vite serves them at `/study/docs/...` (and the same path under GitHub Pages). The app links to those files from each day's plan.
