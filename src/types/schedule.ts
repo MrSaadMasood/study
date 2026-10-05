@@ -43,6 +43,7 @@ export interface StudySession {
   exercises: Exercise[];
   focus: string[];
   skip: string[];
+  quickReference?: string[];
   timeBreakdown?: string[];
   resources: Resource[];
 }

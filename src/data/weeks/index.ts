@@ -3,6 +3,7 @@ import { week1Sessions } from './week1';
 import { week2Sessions, week3Sessions } from './week2-3';
 import { week4Sessions, week5Sessions } from './week4-5';
 import { week6Sessions, week7Sessions, week8Sessions } from './week6-8';
+import { week9Sessions, week10Sessions } from './week9-10';
 
 export const WEEKS: WeekPlan[] = [
   {
@@ -25,57 +26,75 @@ export const WEEKS: WeekPlan[] = [
   },
   {
     number: 3,
-    title: 'Database Mastery + DSA Trees',
+    title: 'Databases You Can Write + URL Shortener',
     theme:
-      'Databases are asked in every Pakistani interview without exception. Week 3 owns this topic completely. Give it 100% focus on weekdays.',
+      'Databases come up constantly at 4–5 years. This week you write the index, the transfer, and the aggregation. Saturday is a design you attempt before you read it.',
     exitCriteria:
-      'You can design an optimal composite index and explain why. You know all 4 ACID properties with examples. You can write a MongoDB aggregation pipeline for a grouped query. 6 total LeetCode problems done.',
+      'You can write the orders index and say why the column order is that way. You can write the bank transfer. You have a 40-minute URL shortener on paper. 6 problems solved.',
     sessions: week3Sessions,
   },
   {
     number: 4,
-    title: 'Auth + Security + Advanced SQL + DSA Graphs + Mock #1',
+    title: 'Auth, Security, SQL You Can Write + Mock 1',
     theme:
-      'Security and auth are the #2 missed topic at 4–5 YOE. This week closes that gap. Saturday is your first mock — treat it seriously.',
+      'Auth and IDOR are normal senior questions. Saturday is a baseline mock, not more reading.',
     exitCriteria:
-      'You can implement the JWT auth middleware from memory (rough sketch). You know IDOR and how to fix it. Mock interview done — baseline set. 9 total LeetCode problems done.',
+      'You can sketch the JWT middleware and the order-ownership check. The top-3 query is written, not described. Mock 1 is done and three gaps are written down. 9 problems solved.',
     sessions: week4Sessions,
   },
   {
     number: 5,
-    title: 'React + Frontend Depth + DSA Dynamic Programming',
+    title: 'React Questions You Will Actually Get + Rate Limiter',
     theme:
-      'Every MERN role tests React. Week 5 covers it completely. DP is the most commonly failed DSA category — two sessions on it this week.',
+      'Three hours on the React questions seniors get asked, then a rate limiter you design closed-book. No new frontend stack.',
     exitCriteria:
-      'You can explain the stale closure bug and fix it. You know when useCallback helps (paired with React.memo) vs when it\'s overhead. You\'ve designed the API gateway narrative. 12 total LeetCode problems done.',
+      'You can fix the stale closure in code and reject a useless useCallback. The rate limiter is on paper, including what happens when the counter store is down. 11 problems solved.',
     sessions: week5Sessions,
   },
   {
     number: 6,
-    title: 'Behavioral + Go Differentiator + DSA + Mock #2',
+    title: 'Stories, Three Applications, Mock 2',
     theme:
-      'Behavioral week. Most engineers skip this. At 4–5 YOE it can be the deciding factor in international roles. Saturday is Mock #2 — your comparison point against Mock #1.',
+      'Behavioral starts because international loops use it. The proxy story stays honest. Three applications go out. Mock 2 adds two stories.',
     exitCriteria:
-      '5 STAR stories exist in written form. Go proxy walkthrough takes under 12 minutes with confidence. Mock #2 shows measurable improvement over Mock #1. 15 total LeetCode problems done.',
+      'Five stories exist on paper. Three applications are submitted. The proxy walkthrough includes what is not built. Mock 2 is compared with mock 1. 13 problems solved.',
     sessions: week6Sessions,
   },
   {
     number: 7,
-    title: 'Weak Area Patch + Advanced Topics + DSA Consolidation',
+    title: 'A Real Test, One Ops Hour, One Design',
     theme:
-      'Based on your Mock #1 and #2 feedback, this week patches the gaps. Microservices and testing basics are added here. You should be actively applying to jobs now.',
+      'Write one test. Learn the circuit breaker well enough to draw it. Design either notifications or chat, not both.',
     exitCriteria:
-      'You can explain circuit breaker pattern. You know exactly what to mock when testing external services. You\'ve done a timed problem under pressure. 18 total LeetCode problems done.',
+      'A unit test with a mocked dependency exists. You can walk the three breaker states. One of notifications or chat is designed closed-book. 14 distinct problems, plus one timed re-solve.',
     sessions: week7Sessions,
   },
   {
     number: 8,
-    title: 'Final Polish + Resume + Active Applications',
+    title: 'Apply What You Know + The Other Design',
     theme:
-      'Preparation is good enough. This week is about transitions — from studying to applying. Reduce study intensity, increase application volume. You\'ve done the work.',
+      'No new stacks. Re-renders, database recall, one endpoint, two more problems in patterns you already know, and the design you skipped.',
     exitCriteria:
-      'Resume finalized and submitted to at least 5 positions. 3 ongoing study priorities identified. 20+ total LeetCode problems done. Go proxy on resume. You are interview-ready.',
+      'The list re-render has a written fix. One orders endpoint is in a scratch file. The second of notifications or chat is done. 16 distinct problems.',
     sessions: week8Sessions,
+  },
+  {
+    number: 9,
+    title: 'Retrieval + Mock 3',
+    theme:
+      'Say the stories. Review the cheat sheet. One hour on one mock gap. Two problems that close real holes: a hash map, and the cycle-start follow-up.',
+    exitCriteria:
+      'Stories are spoken on a timer. The shaky list has at most five items. Mock 3 is closed-book on a design you already studied. 18 distinct problems.',
+    sessions: week9Sessions,
+  },
+  {
+    number: 10,
+    title: 'Resume, One Last Problem, Applications',
+    theme:
+      'Stop adding topics. Make the resume true, re-solve one miss, solve one last Medium, then apply. Interviews will show what is left.',
+    exitCriteria:
+      'Resume is one page and the proxy lines are true. 19 distinct problems. The spreadsheet has 8–12 applications. Three leftover gaps are written down. Then you stop.',
+    sessions: week10Sessions,
   },
 ];
 

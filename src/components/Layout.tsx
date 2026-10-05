@@ -21,7 +21,7 @@ export function Layout() {
         <Outlet />
       </main>
       <footer className="app-footer">
-        8-week structured prep · Progress saved locally in your browser
+        10-week prep · Weeks 1–2 already done · Progress saved in this browser
       </footer>
     </div>
   );

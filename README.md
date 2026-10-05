@@ -1,10 +1,10 @@
 # Interview Prep Schedule App
 
-A centralized React app for your 8-week senior full-stack interview preparation schedule.
+A centralized React app for a 10-week senior full-stack interview preparation schedule. Weeks 1 and 2 are unchanged.
 
 ## Features
 
-- **Master dashboard** — full 8-week schedule, priority hierarchy, DSA tracker, market strategy
+- **Master dashboard** — full 10-week schedule, priority hierarchy, DSA tracker, market strategy
 - **Week detail pages** — all days for a week with exit criteria
 - **Day detail pages** — step-by-step study plan, exercises, free resources, focus/skip guidance
 - **Progress tracking** — check off completed sessions (saved in browser localStorage)

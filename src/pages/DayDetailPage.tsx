@@ -157,6 +157,18 @@ export function DayDetailPage() {
             </section>
           )}
 
+          {session.quickReference && session.quickReference.length > 0 && (
+            <section className="detail-section detail-section--ref">
+              <h2>Quick reference</h2>
+              <p className="section__lead">Close the doc. You should be able to say these.</p>
+              <ul className="detail-list">
+                {session.quickReference.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           <InfoBox variant="info" title="End-of-session rule:">
             Write 3–5 bullet points in your own words. If you can't explain it without notes, you
             haven't finished the session.
