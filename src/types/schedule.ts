@@ -29,6 +29,12 @@ export interface Exercise {
   optional?: boolean;
 }
 
+/** Closed-book check for one topic on a study day. */
+export interface CompletionTest {
+  topic: string;
+  questions: string[];
+}
+
 export interface StudySession {
   id: string;
   day: DayKey;
@@ -41,12 +47,17 @@ export interface StudySession {
   summary: string;
   studyPlan: string[];
   exercises: Exercise[];
+  /** One block per topic this day is meant to teach. Empty on rest days. */
+  completionTests: CompletionTest[];
   focus: string[];
   skip: string[];
   quickReference?: string[];
   timeBreakdown?: string[];
   resources: Resource[];
 }
+
+/** A session before completion tests are attached. Week files use this. */
+export type StudySessionDraft = Omit<StudySession, 'completionTests'>;
 
 export interface WeekPlan {
   number: number;

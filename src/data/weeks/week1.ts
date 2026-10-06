@@ -1,8 +1,8 @@
-import type { StudySession } from '../../types/schedule';
+import type { StudySessionDraft } from '../../types/schedule';
 import { DSA_PATTERN_RESOURCES } from '../dsaResources';
 import { LOCAL_DOC_PATHS, prepDoc } from '../localDocs';
 
-export const week1Sessions: StudySession[] = [
+export const week1Sessions: StudySessionDraft[] = [
   {
     id: 'w1-mon',
     day: 'monday',

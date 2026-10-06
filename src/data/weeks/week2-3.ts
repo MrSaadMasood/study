@@ -1,8 +1,8 @@
-import type { StudySession } from '../../types/schedule';
+import type { StudySessionDraft } from '../../types/schedule';
 import { DSA_PATTERN_RESOURCES } from '../dsaResources';
 import { LOCAL_DOC_PATHS, prepDoc } from '../localDocs';
 
-export const week2Sessions: StudySession[] = [
+export const week2Sessions: StudySessionDraft[] = [
   {
     id: 'w2-mon', day: 'monday', dayLabel: 'Monday', topic: 'Node.js Streams + Backpressure',
     duration: '1 hr', type: 'study', priorities: ['p2'],
@@ -180,7 +180,7 @@ export const week2Sessions: StudySession[] = [
   },
 ];
 
-export const week3Sessions: StudySession[] = [
+export const week3Sessions: StudySessionDraft[] = [
   {
     id: 'w3-mon', day: 'monday', dayLabel: 'Monday', topic: 'SQL Indexing',
     duration: '1 hr', type: 'study', priorities: ['p3'],

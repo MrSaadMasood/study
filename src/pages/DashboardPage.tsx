@@ -42,8 +42,9 @@ export function DashboardPage() {
 
       <InfoBox variant="info" title="How to use this app:">
         Each week has a fixed pattern — Mon–Wed main topic, Thu–Fri DSA, Sat deep session.
-        Click <strong>View Details</strong> beside any day for exercises, free resources, what to
-        focus on, and what to skip. Check off days as you complete them — progress saves locally.
+        Click <strong>View Details</strong> beside any day for the completion test, exercises, free
+        resources, what to focus on, and what to skip. A day is done when you can answer that
+        test without notes. Check off days as you complete them — progress saves locally.
       </InfoBox>
 
       <InfoBox variant="warn" title="Priority rule when compressed:">

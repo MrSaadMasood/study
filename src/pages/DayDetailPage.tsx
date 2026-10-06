@@ -109,6 +109,28 @@ export function DayDetailPage() {
             </ol>
           </section>
 
+          {session.completionTests.length > 0 && (
+            <section className="detail-section detail-section--test">
+              <h2>Completion test</h2>
+              <p className="section__lead">
+                Close the notes. A topic is done when you can answer every question in its block
+                without looking anything up. A miss means that topic is unfinished, even if the
+                hour is over. The wording of each question is the depth to study: stop once you
+                can answer it.
+              </p>
+              {session.completionTests.map((test) => (
+                <article key={test.topic} className="completion-test">
+                  <h3>{test.topic}</h3>
+                  <ol className="numbered-list">
+                    {test.questions.map((question) => (
+                      <li key={question}>{question}</li>
+                    ))}
+                  </ol>
+                </article>
+              ))}
+            </section>
+          )}
+
           {session.exercises.length > 0 && (
             <section className="detail-section">
               <h2>Exercises</h2>
@@ -170,8 +192,8 @@ export function DayDetailPage() {
           )}
 
           <InfoBox variant="info" title="End-of-session rule:">
-            Write 3–5 bullet points in your own words. If you can't explain it without notes, you
-            haven't finished the session.
+            Answer the completion test with the notes closed. Then write 3–5 bullets in your own
+            words for any topic you still missed.
           </InfoBox>
         </>
       )}

@@ -1,8 +1,8 @@
-import type { StudySession } from '../../types/schedule';
+import type { StudySessionDraft } from '../../types/schedule';
 import { DSA_PATTERN_RESOURCES } from '../dsaResources';
 import { LOCAL_DOC_PATHS, prepDoc } from '../localDocs';
 
-export const week6Sessions: StudySession[] = [
+export const week6Sessions: StudySessionDraft[] = [
   {
     id: 'w6-mon', day: 'monday', dayLabel: 'Monday', topic: 'Write 5 STAR Stories',
     duration: '1 hr', type: 'study', priorities: ['p6'],
@@ -141,7 +141,7 @@ export const week6Sessions: StudySession[] = [
   },
 ];
 
-export const week7Sessions: StudySession[] = [
+export const week7Sessions: StudySessionDraft[] = [
   {
     id: 'w7-mon', day: 'monday', dayLabel: 'Monday', topic: 'Write One Test',
     duration: '1 hr', type: 'study', priorities: ['p2'],
@@ -288,7 +288,7 @@ export const week7Sessions: StudySession[] = [
   },
 ];
 
-export const week8Sessions: StudySession[] = [
+export const week8Sessions: StudySessionDraft[] = [
   {
     id: 'w8-mon', day: 'monday', dayLabel: 'Monday', topic: 'React Re-renders',
     duration: '1 hr', type: 'study', priorities: ['p5'],

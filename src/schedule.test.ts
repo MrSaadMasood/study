@@ -31,6 +31,33 @@ describe('schedule after Week 2', () => {
     }
   });
 
+  it('gives every study day a closed-book test for each topic', () => {
+    for (const week of WEEKS) {
+      for (const session of week.sessions) {
+        if (session.type === 'rest') {
+          expect(session.completionTests).toEqual([]);
+          continue;
+        }
+        expect(session.completionTests.length).toBeGreaterThan(0);
+        const topics = session.completionTests.map((test) => test.topic);
+        expect(new Set(topics).size).toBe(topics.length);
+        for (const test of session.completionTests) {
+          expect(test.topic.trim().length).toBeGreaterThan(0);
+          expect(test.questions.length).toBeGreaterThanOrEqual(4);
+          expect(new Set(test.questions).size).toBe(test.questions.length);
+        }
+      }
+    }
+    const indexing = getSession(3, 'monday');
+    expect(indexing?.completionTests.map((test) => test.topic)).toEqual([
+      'B-tree indexes',
+      'Composite indexes and the leftmost prefix',
+      'Covering indexes',
+      'Reading one EXPLAIN',
+      'When an index is the wrong tool',
+    ]);
+  });
+
   it('schedules 19 distinct problems and starts applications in Week 6', () => {
     const numbers = DSA_PROBLEMS.map((problem) => problem.leetcode).filter((id) => id !== '—');
     expect(new Set(numbers).size).toBe(19);

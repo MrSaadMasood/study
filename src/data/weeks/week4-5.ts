@@ -1,8 +1,8 @@
-import type { StudySession } from '../../types/schedule';
+import type { StudySessionDraft } from '../../types/schedule';
 import { DSA_PATTERN_RESOURCES } from '../dsaResources';
 import { LOCAL_DOC_PATHS, prepDoc } from '../localDocs';
 
-export const week4Sessions: StudySession[] = [
+export const week4Sessions: StudySessionDraft[] = [
   {
     id: 'w4-mon', day: 'monday', dayLabel: 'Monday', topic: 'JWT + Auth Patterns',
     duration: '1 hr', type: 'study', priorities: ['p2'],
@@ -155,7 +155,7 @@ export const week4Sessions: StudySession[] = [
   },
 ];
 
-export const week5Sessions: StudySession[] = [
+export const week5Sessions: StudySessionDraft[] = [
   {
     id: 'w5-mon', day: 'monday', dayLabel: 'Monday', topic: 'React Internals',
     duration: '1 hr', type: 'study', priorities: ['p5'],

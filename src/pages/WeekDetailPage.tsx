@@ -40,8 +40,8 @@ export function WeekDetailPage() {
       <section className="section">
         <h2>Daily Plan</h2>
         <p className="section__lead">
-          Click <strong>View Details</strong> on any day for exercises, resources, focus areas, and
-          what to skip.
+          Click <strong>View Details</strong> on any day for the completion test, exercises,
+          resources, focus areas, and what to skip.
         </p>
         <div className="table-wrap">
           <table className="schedule-table">
