@@ -1,0 +1,286 @@
+import type { StudySession } from '../../types/schedule';
+import { DSA_PATTERN_RESOURCES } from '../dsaResources';
+import { LOCAL_DOC_PATHS, prepDoc } from '../localDocs';
+
+export const week9Sessions: StudySession[] = [
+  {
+    id: 'w9-mon', day: 'monday', dayLabel: 'Monday', topic: 'Stories Out Loud',
+    duration: '1 hr', type: 'study', priorities: ['p6', 'p7'],
+    docRefs: ['Your Week 6 drafts'],
+    summary: 'Say the five stories and the honest proxy walkthrough. Cut anything over time.',
+    studyPlan: [
+      'Deliver all five STAR stories out loud. Time them.',
+      'Over 2.5 minutes: cut situation, not the result',
+      'Proxy walkthrough, 8 minutes, including what is not built',
+      'No new stories',
+    ],
+    exercises: [
+      { title: 'Five timed stories', description: 'Out loud. Note the one that still rambles.' },
+      { title: 'Proxy', description: '8 minutes. The "not built yet" sentence is still in it.' },
+    ],
+    focus: ['You can say them without the page', 'The proxy story matches the code'],
+    skip: ['New stories', 'Go language study', 'Salary'],
+    timeBreakdown: ['40 min stories', '15 min proxy', '5 min mark the one to cut'],
+    resources: [
+      prepDoc(LOCAL_DOC_PATHS.behavioral, 'Doc 06 — your drafts'),
+    ],
+  },
+  {
+    id: 'w9-tue', day: 'tuesday', dayLabel: 'Tuesday', topic: 'System Design Cheat Sheet',
+    duration: '1 hr', type: 'study', priorities: ['p1'],
+    docRefs: ['Doc 01 — cheat sheet and latency numbers only'],
+    summary: 'Cheat sheet and the latency numbers. Write down at most five items that are still shaky.',
+    studyPlan: [
+      '30 min: the cheat sheet. Do not reopen the walkthroughs.',
+      '20 min: memory vs SSD vs a network round trip, from memory, then check',
+      '10 min: write up to five shaky items. Week 10 Friday is for this list.',
+    ],
+    exercises: [
+      { title: 'Five shaky items', description: 'A short list. If you cannot fill five, stop. Do not go looking for new topics.' },
+      { title: 'Numbers', description: 'Order these: memory, SSD, same-datacenter round trip. Approximate is enough.' },
+    ],
+    focus: ['Review, not a new design', 'A short shaky list'],
+    skip: ['A new system', 'Kubernetes', 'Consensus protocols'],
+    timeBreakdown: ['30 min cheat sheet', '20 min numbers', '10 min shaky list'],
+    resources: [
+      prepDoc(LOCAL_DOC_PATHS.systemDesign, 'Doc 01 — cheat sheet and numbers'),
+      { title: 'System Design Primer — Numbers', url: 'https://github.com/donnemartin/system-design-primer#performance-characteristics-of-numbers' },
+    ],
+  },
+  {
+    id: 'w9-wed', day: 'wednesday', dayLabel: 'Wednesday', topic: 'One Mock Gap',
+    duration: '1 hr', type: 'study', priorities: ['p2'],
+    docRefs: ['The gap lists from mocks 1 and 2'],
+    summary: 'One hour on the single worst gap. If the lists are empty, redraw the auth middleware and the IDOR check.',
+    studyPlan: [
+      'Pick the gap that showed up in a mock, or the one you wrote down and still cannot answer',
+      'Study only that. Write a five-line answer in your own words.',
+      'If both mocks went cleanly: sketch the JWT middleware and the order-ownership check from memory',
+      'Do not open a second topic',
+    ],
+    exercises: [
+      { title: 'Five-line answer', description: 'The gap, in words you can say in an interview.' },
+    ],
+    focus: ['One gap', 'A written answer'],
+    skip: ['A tour of every miss', 'New frameworks'],
+    timeBreakdown: ['10 min pick the gap', '40 min study it', '10 min five lines'],
+    resources: [
+      prepDoc(LOCAL_DOC_PATHS.backend, 'Doc 02 — use the section that matches the gap'),
+      prepDoc(LOCAL_DOC_PATHS.systemDesign, 'Doc 01 — only if the gap was a design'),
+    ],
+  },
+  {
+    id: 'w9-thu', day: 'thursday', dayLabel: 'Thursday', topic: 'DSA: Group Anagrams',
+    duration: '1 hr', type: 'dsa', priorities: ['p4'],
+    docRefs: ['Doc 04 — hash maps are in the problem bank'],
+    summary: 'LC 49. A hash map. The key is the sorted word, or a count of its letters.',
+    studyPlan: [
+      'You have not had a hash-map session. This is that session.',
+      'Group strings that are anagrams. Key: sort the characters, or a 26-letter count.',
+      'Solve LC 49',
+      'State time and space. Sorting each word costs more per word than a fixed alphabet count.',
+    ],
+    exercises: [{ title: 'LC 49', description: 'Group Anagrams. Hash map. Handle the empty list.' }],
+    focus: ['The map key is the pattern', 'You can say why a count key avoids sorting each word'],
+    skip: ['Valid Anagram as a separate session', 'A second hash-map problem'],
+    timeBreakdown: ['10 min choose the key', '40 min solve', '10 min complexity'],
+    resources: [
+      prepDoc(LOCAL_DOC_PATHS.dsa, 'Doc 04 — hash map problems in the bank'),
+      { title: 'Group Anagrams — LC 49', url: 'https://leetcode.com/problems/group-anagrams/' },
+      { title: 'NeetCode — Group Anagrams', url: 'https://www.youtube.com/watch?v=vzdNOK2oB2E' },
+    ],
+  },
+  {
+    id: 'w9-fri', day: 'friday', dayLabel: 'Friday', topic: 'DSA: Linked List Cycle II',
+    duration: '1 hr', type: 'dsa', priorities: ['p4'],
+    docRefs: ['Doc 04 — Fast and slow pointers'],
+    summary: 'LC 142. You already detect a cycle. Today you return where it starts.',
+    studyPlan: [
+      'Same two pointers as LC 141 until they meet',
+      'Then one pointer goes back to the head. Both move one step. They meet at the start of the cycle.',
+      'You need that procedure. The formal proof is optional.',
+      'Solve LC 142. If there is no cycle, return null.',
+    ],
+    exercises: [{ title: 'LC 142', description: 'Linked List Cycle II. O(1) extra space.' }],
+    focus: ['Detect, then reset one pointer to the head', 'No cycle returns null'],
+    skip: ['The formal proof', 'A third linked-list problem'],
+    timeBreakdown: ['15 min the two phases', '40 min solve', '5 min say the procedure'],
+    resources: [
+      ...DSA_PATTERN_RESOURCES.fastSlow,
+      { title: 'Linked List Cycle II — LC 142', url: 'https://leetcode.com/problems/linked-list-cycle-ii/' },
+    ],
+  },
+  {
+    id: 'w9-sat', day: 'saturday', dayLabel: 'Saturday', topic: 'Mock Interview #3',
+    duration: '2–3 hrs', type: 'mock', priorities: ['p1', 'p4', 'p6'],
+    docRefs: ['Gap lists from mocks 1 and 2'],
+    summary: 'Same shape as mock 2. The design is one you already studied, done closed-book.',
+    studyPlan: [
+      '40 min: a Medium you have not been walked through in the last week',
+      '30 min: URL shortener, rate limiter, notifications, or chat — pick the one you scored worst on. Docs closed.',
+      '15 min: two stories, including one the last mock did not use',
+      'Write whether each of the three old gaps is still true',
+    ],
+    exercises: [
+      { title: 'Coding', description: 'One Medium. Approach, then code, then a quick test.' },
+      { title: 'Design', description: 'Your weakest of the four you already studied. No notes.' },
+      { title: 'Two stories', description: 'Under 2.5 minutes.' },
+      { title: 'Gap check', description: 'For each old gap: still open, or closed.' },
+    ],
+    focus: ['Closed-book on a familiar design', 'An honest gap check'],
+    skip: ['A new system you have never studied', 'Cramming Friday night'],
+    timeBreakdown: ['40 min coding', '30 min design', '15 min stories', '10 min gap check'],
+    resources: [
+      prepDoc(LOCAL_DOC_PATHS.systemDesign, 'Doc 01 — only after the mock, to check a gap'),
+      { title: 'Pramp', url: 'https://www.pramp.com/' },
+      { title: 'interviewing.io', url: 'https://interviewing.io/' },
+    ],
+  },
+  {
+    id: 'w9-sun', day: 'sunday', dayLabel: 'Sunday', topic: 'REST', duration: '—', type: 'rest',
+    priorities: [], docRefs: [], summary: 'Full rest day.',
+    studyPlan: ['No studying.'], exercises: [], focus: [], skip: ['Everything.'], resources: [],
+  },
+];
+
+export const week10Sessions: StudySession[] = [
+  {
+    id: 'w10-mon', day: 'monday', dayLabel: 'Monday', topic: 'Resume',
+    duration: '1 hr', type: 'study', priorities: ['p7'],
+    docRefs: ['Your current resume'],
+    summary: 'One page. Numbers you can defend. The proxy only if the bullet is true.',
+    studyPlan: [
+      'Rewrite three bullets so each has a scope you can explain: users, latency, a bug class, a migration',
+      'Proxy: at most two bullets, both true of the code today. If a feature is unfinished, it is not a bullet.',
+      'Keep one page',
+      'Do not redesign the template',
+    ],
+    exercises: [
+      { title: 'Three bullets', description: 'Each one: what you built, and a result you can talk about for two minutes.' },
+      { title: 'Proxy bullets', description: 'Zero, one, or two. Delete any line the code does not support.' },
+    ],
+    focus: ['Defensible bullets', 'One page', 'No invented Go features'],
+    skip: ['A new visual design', 'A cover letter unless a specific job requires one'],
+    timeBreakdown: ['40 min bullets', '20 min cut to one page'],
+    resources: [
+      prepDoc(LOCAL_DOC_PATHS.schedule, 'Doc 00 — Week 10'),
+      { title: 'freeCodeCamp — Developer Resume', url: 'https://www.freecodecamp.org/news/how-to-write-a-developer-resume/' },
+    ],
+  },
+  {
+    id: 'w10-tue', day: 'tuesday', dayLabel: 'Tuesday', topic: 'Final Rehearsal',
+    duration: '1 hr', type: 'study', priorities: ['p6'],
+    docRefs: ['Doc 06 — questions to ask'],
+    summary: 'Record the stories. Pick three questions you would actually ask.',
+    studyPlan: [
+      'Record the five stories. Watch or listen to the one that was long on Monday.',
+      'Tell me about yourself, once more, 90 seconds',
+      'Pick three questions to ask the interviewer. About the team\'s work, not perks.',
+    ],
+    exercises: [
+      { title: 'One recording', description: 'The story you marked on Monday. Cut a sentence after you hear it.' },
+      { title: 'Three questions', description: 'Write them down. You will reuse them.' },
+    ],
+    focus: ['The long story gets shorter', 'Questions that show you have done the work'],
+    skip: ['New stories', 'Salary negotiation'],
+    timeBreakdown: ['35 min stories', '10 min opener', '15 min questions'],
+    resources: [
+      prepDoc(LOCAL_DOC_PATHS.behavioral, 'Doc 06 — questions to ask'),
+    ],
+  },
+  {
+    id: 'w10-wed', day: 'wednesday', dayLabel: 'Wednesday', topic: 'DSA: Re-solve a Miss',
+    duration: '1 hr', type: 'dsa', priorities: ['p4'],
+    docRefs: ['A problem from this plan you did not finish cleanly'],
+    summary: 'One problem, from a blank file. The choice is fixed so you do not spend the hour choosing.',
+    studyPlan: [
+      'If 3Sum or Coin Change was incomplete or needed a solution, re-solve that one',
+      'If both were clean, re-solve Course Schedule',
+      '25 min timer, then use the rest of the hour only on the insight you missed',
+      'No new problem',
+    ],
+    exercises: [
+      { title: 'One re-solve', description: '3Sum, Coin Change, or Course Schedule. The first of those you cannot rewrite today.' },
+    ],
+    focus: ['A blank file', 'Stop adding scope'],
+    skip: ['A new pattern', 'Hard problems'],
+    timeBreakdown: ['25 min timer', '25 min the missing insight', '10 min rewrite the core loop'],
+    resources: [
+      prepDoc(LOCAL_DOC_PATHS.dsa, 'Doc 04 — only the pattern you chose'),
+    ],
+  },
+  {
+    id: 'w10-thu', day: 'thursday', dayLabel: 'Thursday', topic: 'DSA: Container With Most Water',
+    duration: '1 hr', type: 'dsa', priorities: ['p4'],
+    docRefs: ['Doc 04 — Two pointers'],
+    summary: 'LC 11. Last new problem. Two pointers, move the shorter side.',
+    studyPlan: [
+      'Left and right start at the ends. Area is width times the shorter height.',
+      'Move the pointer at the shorter line. Moving the taller one cannot increase the area at this width.',
+      'Solve LC 11 in 25 minutes if you can. Use the rest of the hour to say why the pointer moves.',
+      'Then stop. There is no second problem today.',
+    ],
+    exercises: [{ title: 'LC 11', description: 'Container With Most Water. O(n) time, O(1) space.' }],
+    focus: ['Move the shorter side', 'You can say why'],
+    skip: ['Trapping Rain Water', 'Any other problem'],
+    timeBreakdown: ['10 min why the shorter side moves', '25 min solve', '25 min explain it without the code'],
+    resources: [
+      ...DSA_PATTERN_RESOURCES.twoPointers,
+      { title: 'Container With Most Water — LC 11', url: 'https://leetcode.com/problems/container-with-most-water/' },
+    ],
+  },
+  {
+    id: 'w10-fri', day: 'friday', dayLabel: 'Friday', topic: 'Shaky List, Then Stop',
+    duration: '1 hr', type: 'study', priorities: ['p1'],
+    docRefs: ['The five-item list from Week 9'],
+    summary: 'Answer the shaky list out loud. Do not open a new topic. End early if the list is short.',
+    studyPlan: [
+      'Take the list from Tuesday of Week 9',
+      'For each item, answer out loud in under three minutes',
+      'If an item still fails, write five lines. That is the after-plan list.',
+      'When the list is done, stop. Do not fill the hour with a new doc.',
+    ],
+    exercises: [
+      { title: 'Oral answers', description: 'One pass over the list. No new headings.' },
+    ],
+    focus: ['Close the list', 'Leave the rest of the evening alone'],
+    skip: ['New topics', 'Re-reading a walkthrough', 'Hard problems'],
+    timeBreakdown: ['Up to 45 min on the list', 'Stop. The remaining time is not a study slot.'],
+    resources: [
+      prepDoc(LOCAL_DOC_PATHS.systemDesign, 'Doc 01 — only a section named on your list'),
+    ],
+  },
+  {
+    id: 'w10-sat', day: 'saturday', dayLabel: 'Saturday', topic: 'Applications',
+    duration: '3 hrs', type: 'applications', priorities: ['p1', 'p6', 'p7'],
+    docRefs: ['The Week 6 spreadsheet'],
+    summary: 'One hour to name three leftover gaps. Two hours to bring the total applications to between 8 and 12.',
+    studyPlan: [
+      '1 hr: write the three gaps that real interviews should drive next. Not a new curriculum.',
+      '2 hrs: submit applications until the spreadsheet has 8 to 12 rows, including the three from Week 6',
+      'Same mix as Week 6: Pakistani product roles and international remote or product roles you would take',
+      'Tailor the first bullet. Track company, role, date, link, status.',
+      'Stop at 12. Do not spend the day on companies you would not join.',
+    ],
+    exercises: [
+      { title: 'Three gaps', description: 'Ordered. Each one is a topic an interview already exposed, or a problem you still cannot rewrite.' },
+      { title: 'Applications', description: 'Spreadsheet total between 8 and 12. First bullet tailored.' },
+    ],
+    focus: ['A cap, not a blast', 'Roles you would accept', 'The gap list is short on purpose'],
+    skip: ['A new study topic', 'Kubernetes, GraphQL, LeetCode Hard, or a Go course "just in case"', 'More than 12 applications today'],
+    timeBreakdown: ['1 hr gap list', '2 hrs applications'],
+    resources: [
+      prepDoc(LOCAL_DOC_PATHS.schedule, 'Doc 00 — after Week 10'),
+      { title: 'Rozee.pk', url: 'https://www.rozee.pk/' },
+      { title: 'LinkedIn Jobs', url: 'https://www.linkedin.com/jobs/' },
+      { title: 'Turing', url: 'https://www.turing.com/' },
+    ],
+  },
+  {
+    id: 'w10-sun', day: 'sunday', dayLabel: 'Sunday', topic: 'REST',
+    duration: '—', type: 'rest', priorities: [], docRefs: [],
+    summary: 'Full rest. The planned prep is over. Interviews will show what is actually left.',
+    studyPlan: ['No studying.'],
+    exercises: [], focus: [], skip: ['Everything.'], resources: [],
+  },
+];
